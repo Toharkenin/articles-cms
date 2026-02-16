@@ -1,11 +1,11 @@
 import Articles from "./articals/page";
-import ArticleCard from "./components/article-card";
-import Footer from "./components/footer";
-import Hero from "./components/hero";
+import ArticleCard from "../../components/layout/article-card";
+import Footer from "../../components/layout/footer";
+import Hero from "../../components/layout/hero";
 
 export default function Home() {
   return (
-    <div className="py-16">
+    <div>
       <Hero />
       <Articles />
     </div>

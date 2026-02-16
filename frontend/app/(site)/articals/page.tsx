@@ -1,4 +1,4 @@
-import ArticleCard from "../components/article-card";
+import ArticleCard from "../../../components/layout/article-card";
 
 const articles = [
   {
@@ -47,18 +47,19 @@ const articles = [
 
 export default function Articles() {
   return (
-    <div className="py-8">
+    <div className="py-8 mx-auto max-w-7xl px-8">
       <h1 className="text-4xl font-bold font-serif mb-8">All Articles</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-wrap gap-6">
         {articles.map((article) => (
-          <ArticleCard
-            key={article.id}
-            title={article.title}
-            category={article.category}
-            image={article.image}
-            author={article.author}
-          />
+          <div key={article.id} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+            <ArticleCard
+              title={article.title}
+              category={article.category}
+              image={article.image}
+              author={article.author}
+            />
+          </div>
         ))}
       </div>
     </div>

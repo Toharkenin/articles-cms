@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">G-Articles</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Jeo Politics</h3>
             <p className="text-sm leading-relaxed">
               Your trusted source for insightful articles on politics, technology, 
               culture, and more. Stay informed with quality journalism.
@@ -98,7 +98,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} G-Articles. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Jeo Politics. All rights reserved.</p>
         </div>
       </div>
     </footer>
