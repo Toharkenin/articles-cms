@@ -1,43 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuthContext } from '@/context/auth-context';
+import AuthContextWrapper from '@/context/auth-context';
 
-export default function AdminLayout({
+function AdminLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { value, update } = useAuthContext();
+  const { isLoggedIn, logout } = value;
 
   useEffect(() => {
-    // Check if user is authenticated
-    // TODO: Replace with actual authentication logic
-    const checkAuth = () => {
-      // Guard against SSR
-      if (typeof window === 'undefined') {
-        setIsLoading(false);
-        return;
-      }
-      
-      const token = localStorage.getItem('authToken');
-      
-      if (!token && pathname !== '/admin/login') {
-        router.push('/admin/login');
-      } else {
-        setIsAuthenticated(true);
-      }
-      setIsLoading(false);
-    };
+    // If not on login page and not logged in, redirect to login
+    if (pathname !== '/admin/login' && !isLoggedIn) {
+      router.push('/admin/login');
+    }
+    // If on login page and already logged in, redirect to dashboard
+    else if (pathname === '/admin/login' && isLoggedIn) {
+      router.push('/admin/dashboard');
+    }
+  }, [pathname, isLoggedIn, router]);
 
-    checkAuth();
-  }, [pathname, router]);
+  // Don't show layout for login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
-  // Show loading state while checking auth
-  if (isLoading) {
+  // Don't show admin layout if not logged in (will redirect)
+  if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
@@ -48,18 +43,14 @@ export default function AdminLayout({
     );
   }
 
-  // Don't show layout for login page
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
-  }
-
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-sm p-4 flex justify-between items-center">
         <h1 className="text-xl font-semibold">Admin Dashboard</h1>
         <button
           onClick={() => {
-            localStorage.removeItem('authToken');
+            logout();
+            update({ isLoggedIn: false });
             router.push('/admin/login');
           }}
           className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
@@ -69,5 +60,17 @@ export default function AdminLayout({
       </nav>
       <main>{children}</main>
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthContextWrapper>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </AuthContextWrapper>
   );
 }
