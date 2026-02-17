@@ -9,6 +9,7 @@ export interface Article extends Document {
   image: string;
   isFeatured: boolean;
   createdAt: Date;
+  isActive: boolean;
 }
 
 const ArticleSchema: Schema = new Schema({
@@ -36,13 +37,17 @@ const ArticleSchema: Schema = new Schema({
     type: String,
     required: true,
   },
-  isUsedForGasFee: {
+  isFeatured: {
     type: Boolean,
-    required: true,
+    default: false,
   },
-  vaultodyCurrency: {
-    type: String,
-    required: false,
+  isActive: {
+    type: Boolean,  
+    default: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 });
 
