@@ -1,0 +1,19 @@
+{
+  "validation": {
+    "email_required": "Email is required",
+    "email_invalid": "Please enter a valid email",
+    "password_required": "Password is required",
+    "password_short": "Password must be at least 6 characters"
+  },
+  "api": {
+    "invalid_credentials": "Invalid email or password",
+    "user_not_found": "No account found with this email",
+    "account_disabled": "Your account has been disabled",
+    "too_many_attempts": "Too many login attempts. Please try again later",
+    "network_error": "Network error. Please check your connection",
+    "server_error": "Server error. Please try again later"
+  },
+  "default": {
+    "unknown_error": "An unexpected error occurred. Please try again"
+  }
+}
