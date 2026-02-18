@@ -81,9 +81,8 @@ export default function LoginPage() {
     try {
       const response = await adminLogin(email, password);
 
-      if (response?.success && response?.token) {
-        login(response.token);
-        localStorage.setItem('admin_token', response.token);
+
+      if (response?.success) {
         update({ isLoggedIn: true });
         router.push('/admin/dashboard');
         return;

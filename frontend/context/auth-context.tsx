@@ -1,10 +1,11 @@
 'use client';
 
 import { createGenericContext } from './create-context';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 type AuthContextData = {
   isLoggedIn: boolean;
+  isAuthLoading: boolean;
   login: (token: string) => void;
   logout: () => void;
 };
@@ -28,11 +29,12 @@ export default function AuthContextWrapper({ children }: { children: ReactNode }
   };
 
   return (
-    <AuthContextProviderInternal 
-      defaultValue={{ 
+    <AuthContextProviderInternal
+      defaultValue={{
         isLoggedIn: false,
+        isAuthLoading: true,
         login,
-        logout
+        logout,
       }}
     >
       <AuthInitializer>{children}</AuthInitializer>
@@ -40,16 +42,34 @@ export default function AuthContextWrapper({ children }: { children: ReactNode }
   );
 }
 
+import { getAdminProfile } from '@/services/auth';
+
 function AuthInitializer({ children }: { children: ReactNode }) {
-  const { value, update } = useAuthContextInternal();
+  const { update } = useAuthContextInternal();
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Check authentication status on mount
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
-      update({ isLoggedIn: !!token });
+  let isMounted = true;
+
+  async function checkAuth() {
+    try {
+      await getAdminProfile(); 
+      if (isMounted) {
+        update({ isLoggedIn: true, isAuthLoading: false });
+      }
+    } catch {
+      if (isMounted) {
+        update({ isLoggedIn: false, isAuthLoading: false });
+      }
     }
-  }, [update]);
+  }
+
+  checkAuth();
+
+  return () => {
+    isMounted = false;
+  };
+}, [update]);
 
   return <>{children}</>;
 }
