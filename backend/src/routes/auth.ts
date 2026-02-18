@@ -23,10 +23,16 @@ router.post('/admin-login', async (req, res) => {
      return res.status(401).json(result);
    }
 
+    res.cookie('token', result.token, {
+      httpOnly: true,
+      secure: false,      
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7
+    });
+    
     res.json({
       success: true,
       message: 'Login successful',
-      token: result.token,
       user: result.user
     });
   } catch (error) {

@@ -3,17 +3,26 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth";
+import cookieParser from 'cookie-parser';
+
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+}));  
+
 app.use(express.json());
+app.use(cookieParser());
+
+// Mount routes
+app.use("/api/auth", authRouter);
 
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
-
-// Mount routes
-app.use("/api/auth", authRouter);
 
 mongoose.connect(process.env.MONGO_URI || "")
   .then(() => console.log("Mongo connected"))
