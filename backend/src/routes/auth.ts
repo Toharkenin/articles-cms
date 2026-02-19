@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import AdminModel from '../models/admin';
 import Auth from '../logic/auth';
+import { requireAdminAuth } from '../middleware/admin-auth';
 
 const router = Router();
 
@@ -83,6 +84,34 @@ router.post('/create-admin', async (req, res) => {
     });
   } catch (error) {
     console.error('Seed admin error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error' 
+    });
+  }
+});
+
+router.get('/get-admin', requireAdminAuth, async (req, res) => {
+  try {
+    const admin = req.admin;
+      if (!admin) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Admin not found' 
+        });
+      }
+
+    res.json({
+        success: true,
+        admin: {
+        email: admin.email,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        role: admin.role,
+      }
+    });
+  } catch (error) {
+    console.error('Get admin error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Internal server error' 
