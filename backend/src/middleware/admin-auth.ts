@@ -5,7 +5,6 @@ import AdminModel from '../models/admin';
 export type AdminRole = 'super_admin' | 'admin';
 
 interface AdminJwtPayload extends JwtPayload {
-  adminId: string;
   role: AdminRole;
 }
 

@@ -54,10 +54,13 @@ class Auth {
 
       // Generate JWT token
       const token = jwt.sign(
-        { id: admin._id, email: admin.email, role: 'admin' },
+        {
+          id: admin._id.toString(),
+          role: admin.role
+        },
         this.jwtSecret,
-        { expiresIn: '24h' }
-      );
+        { expiresIn: '5d' }
+     );
 
       return {
         success: true,
@@ -68,7 +71,7 @@ class Auth {
           email: admin.email,
           firstName: admin.firstName,
           lastName: admin.lastName,
-          role: 'admin'
+          role: admin.role
         }
       };
     } catch (error) {
@@ -119,7 +122,7 @@ class Auth {
           id: admin._id.toString(),
           email: admin.email,
           firstName: admin.firstName,
-          lastName: admin.lastName
+          lastName: admin.lastName,
         }
       };
     } catch (error) {

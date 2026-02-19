@@ -6,6 +6,7 @@ export interface Admin extends Document {
     email: string;
     password: string;
     phoneNumber: string;
+    role: 'super_admin' | 'admin';
 }
 
 const AdminSchema: Schema = new Schema({
@@ -29,7 +30,12 @@ const AdminSchema: Schema = new Schema({
     type: String,
     required: true,
   },
-  
+  role: {
+     type: String,
+     enum: ['super_admin', 'admin'],
+     default: 'admin',
+     required: true,
+    }
 });
 
 const AdminModel = mongoose.model<Admin>('Admin', AdminSchema);
