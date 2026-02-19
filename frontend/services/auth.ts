@@ -10,3 +10,13 @@ export const adminLogin = async (email: string, password: string) => {
     throw error;
   }
 };
+
+export const getAdminProfile = async () => {
+  try {
+    const response = await axiosInstance.get('/auth/get-admin', {});
+    console.log('getAdminProfile response:', response.data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
