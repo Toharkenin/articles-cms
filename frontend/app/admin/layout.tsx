@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/context/auth-context';
 import AuthContextWrapper from '@/context/auth-context';
 import Link from 'next/link';
+import ProfileDropdown from '@/components/admin/profile-dropdown';
 
 function AdminLayoutContent({
   children,
@@ -14,9 +15,10 @@ function AdminLayoutContent({
   const router = useRouter();
   const pathname = usePathname();
   const { value, update } = useAuthContext();
-  const { isLoggedIn, logout } = value;
+  const { isLoggedIn, isAuthLoading, logout } = value;
 
   useEffect(() => {
+    if (isAuthLoading) return;
     // If not on login page and not logged in, redirect to login
     if (pathname !== '/admin/login' && !isLoggedIn) {
       router.push('/admin/login');
@@ -25,11 +27,23 @@ function AdminLayoutContent({
     else if (pathname === '/admin/login' && isLoggedIn) {
       router.push('/admin/dashboard');
     }
-  }, [pathname, isLoggedIn, router]);
+  }, [pathname, isLoggedIn, isAuthLoading, router]);
 
   // Don't show layout for login page
   if (pathname === '/admin/login') {
     return <>{children}</>;
+  }
+
+  // Show loading spinner while auth is being checked
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
   }
 
   // Don't show admin layout if not logged in (will redirect)
@@ -65,16 +79,7 @@ function AdminLayoutContent({
           </div>
         </Link>
       </div>
-        <button
-          onClick={() => {
-            logout();
-            update({ isLoggedIn: false });
-            router.push('/admin/login');
-          }}
-          className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          Logout
-        </button>
+        <ProfileDropdown logout={logout} update={update} router={router} />
       </nav>
       <main>{children}</main>
     </div>
