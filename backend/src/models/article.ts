@@ -3,13 +3,16 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface Article extends Document {
   title: string;
   slug: string;
-  content: string;
   author: string;
-  category: string;
+  category: mongoose.Types.ObjectId;
   image: string;
   isFeatured: boolean;
   createdAt: Date;
   isActive: boolean;
+  contentJson: Object;
+  contentHtml?: string;
+  featuredImage?: string;
+  languages?: string[];
 }
 
 const ArticleSchema: Schema = new Schema({
@@ -21,19 +24,24 @@ const ArticleSchema: Schema = new Schema({
     type: String,
     required: true,
   },
-  content: {
-    type: String,
+  contentJson: {
+    type: Object,
     required: true,
+  },
+  contentHtml: {
+    type: String,
+    required: false,
   },
   author: {
     type: String,
     required: true,
   },
   category: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
     required: true,
   },
-  image: {  
+  image: {
     type: String,
     required: true,
   },
@@ -42,12 +50,20 @@ const ArticleSchema: Schema = new Schema({
     default: false,
   },
   isActive: {
-    type: Boolean,  
+    type: Boolean,
     default: true,
   },
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  featuredImage: {
+    type: String,
+    required: false,
+  },
+  languages: {
+    type: [String],
+    required: false,
   },
 });
 
