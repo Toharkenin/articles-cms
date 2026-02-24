@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StatsCard } from '../../../../components/admin/states-card';
 import { StatusBadge } from '../../../../components/admin/status-badge';
 import { SlidersHorizontal } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 type ArticleStatus = 'active' | 'inactive';
 interface Article {
@@ -54,10 +55,32 @@ export default function ArticlesPage() {
   const total = articles.length;
   const active = articles.filter((a) => a.isActive).length;
   const inactive = total - active;
+  const router = useRouter();
 
   return (
-    <div className="px-6 py-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Articles</h1>
+    <div className="px-6 py-8 mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Articles</h1>
+        <button
+          className="
+            px-4 py-2
+            bg-gradient-to-br
+            from-[#2B4A75]
+            to-[#3A5C88]
+            text-white
+            rounded-lg
+            transition-all duration-200
+            hover:brightness-110
+            focus:outline-none
+            focus:ring-2
+            focus:ring-[#2B4A75]/40
+            cursor-pointer
+          "
+          onClick={() => router.push('/admin/articles/list/new')}
+        >
+          + New Article
+        </button>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
