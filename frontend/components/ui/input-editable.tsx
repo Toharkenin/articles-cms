@@ -2,19 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-interface InlineEditableProps {
+interface InputEditableProps {
   value: string;
   onChange: (val: string) => void;
   onConfirm?: () => void;
   placeholder?: string;
 }
 
-export default function InlineEditable({
+export default function InputEditable({
   value,
   onChange,
   onConfirm,
   placeholder = 'Enter title...',
-}: InlineEditableProps) {
+}: InputEditableProps) {
   const [isEditing, setIsEditing] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
