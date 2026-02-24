@@ -27,6 +27,10 @@ const navItems = [
         name: 'Preview',
         href: '/admin/articles/preview',
       },
+      {
+        name: 'Categories',
+        href: '/admin/articles/categories',
+      },
     ],
   },
   {
@@ -59,7 +63,6 @@ const navItems = [
   },
 ];
 
-
 export default function Sidebar() {
   const pathname = usePathname();
   const [articlesOpen, setArticlesOpen] = useState(false);
@@ -83,8 +86,18 @@ export default function Sidebar() {
                       {item.icon}
                     </span>
                     {item.name}
-                    <svg className={`ml-auto w-4 h-4 transition-transform ${articlesOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className={`ml-auto w-4 h-4 transition-transform ${articlesOpen ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                   {articlesOpen && (
@@ -122,9 +135,7 @@ export default function Sidebar() {
                     }
                   `}
                 >
-                  <span className={isActive ? 'text-blue-700' : 'text-gray-400'}>
-                    {item.icon}
-                  </span>
+                  <span className={isActive ? 'text-blue-700' : 'text-gray-400'}>{item.icon}</span>
                   {item.name}
                 </Link>
               );
