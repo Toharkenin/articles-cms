@@ -28,3 +28,27 @@ export const setCategory = async (name: string, description?: string): Promise<C
     throw error;
   }
 };
+
+export const changeCategoryStatus = async (id: number): Promise<void> => {
+  try {
+    await axiosInstance.patch(`/articles/change-category-status/${id}`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateCategory = async (
+  id: number,
+  name?: string,
+  description?: string
+): Promise<Category> => {
+  try {
+    const response = await axiosInstance.post(`/articles/update-category/${id}`, {
+      name,
+      description,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
