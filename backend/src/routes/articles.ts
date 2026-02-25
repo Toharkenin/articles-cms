@@ -6,7 +6,6 @@ const router = Router();
 router.get('/get-categories', async (req, res) => {
   try {
     const categories = await CategoryModel.find();
-    console.log('Fetched categories:', categories);
     res.json(categories);
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -40,14 +39,37 @@ router.post('/set-category', async (req, res) => {
   }
 });
 
-router.delete('/delete-category/:id', async (req, res) => {
+router.patch('/change-category-status/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedCategory = await CategoryModel.findOneAndDelete({ id: Number(id) });
-    if (!deletedCategory) {
+    const category = await CategoryModel.findOne({ id: Number(id) });
+    if (!category) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
-    res.json({ success: true, message: 'Category deleted successfully' });
+    category.isActive = !category.isActive;
+    await category.save();
+    res.json({ success: true, message: 'Category status updated successfully', category });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.post('/update-category/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const category = await CategoryModel.findOne({ id: Number(id) });
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+    if (description) {
+      category.description = description;
+    }
+    if (name) {
+      category.name = name;
+    }
+    await category.save();
+    res.json({ success: true, message: 'Category updated successfully', category });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
