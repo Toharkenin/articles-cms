@@ -30,7 +30,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
@@ -42,7 +42,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   // Don't show admin layout if not logged in (will redirect)
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
@@ -52,7 +52,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <nav className="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
         <div className="p-6">
           <Link href="/admin/dashboard" className="flex items-center gap-3">

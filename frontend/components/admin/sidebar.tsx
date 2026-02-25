@@ -24,10 +24,6 @@ const navItems = [
         href: '/admin/articles/list',
       },
       {
-        name: 'Preview',
-        href: '/admin/articles/preview',
-      },
-      {
         name: 'Categories',
         href: '/admin/articles/categories',
       },
@@ -68,26 +64,44 @@ export default function Sidebar() {
   const [articlesOpen, setArticlesOpen] = useState(false);
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+    <aside className="w-64 bg-[#F3F6F9] border-r border-blue-100/60 min-h-screen flex flex-col">
       <nav className="flex-1 p-4 pt-6">
-        <div className="space-y-1">
+        <div className="space-y-2">
           {navItems.map((item) => {
             if (item.name === 'Articles') {
-              // Dropdown for Articles
               const isDropdownActive = pathname?.startsWith('/admin/articles');
+
               return (
                 <div key="articles">
                   <button
                     type="button"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium w-full transition-colors ${isDropdownActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'}`}
+                    className={`
+                    group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full transition-all duration-200
+                    ${
+                      isDropdownActive
+                        ? 'bg-gradient-to-r from-[#EAF3FF] to-[#F4F9FF] text-[#2B60EA] shadow-sm ring-1 ring-blue-200/50'
+                        : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#2B60EA]'
+                    }
+                  `}
                     onClick={() => setArticlesOpen((open) => !open)}
                   >
-                    <span className={isDropdownActive ? 'text-blue-700' : 'text-gray-400'}>
+                    <span
+                      className={`
+                      transition-colors
+                      ${isDropdownActive ? 'text-[#2B60EA]' : 'text-gray-400 group-hover:text-[#2B60EA]'}
+                    `}
+                    >
                       {item.icon}
                     </span>
+
                     {item.name}
+
                     <svg
-                      className={`ml-auto w-4 h-4 transition-transform ${articlesOpen ? 'rotate-90' : ''}`}
+                      className={`ml-auto w-4 h-4 transition-transform duration-200 ${
+                        articlesOpen
+                          ? 'rotate-90 text-[#2B60EA]'
+                          : 'text-gray-400 group-hover:text-[#2B60EA]'
+                      }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -100,46 +114,70 @@ export default function Sidebar() {
                       />
                     </svg>
                   </button>
-                  {articlesOpen && (
-                    <div className="ml-8 mt-1 space-y-1">
+
+                  <div
+                    className={`
+                    overflow-hidden transition-all duration-300
+                    ${articlesOpen ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}
+                  `}
+                  >
+                    <div className="ml-6 space-y-1 border-l border-blue-100 pl-4">
                       {item.children?.map((child) => {
                         const isActive = pathname === child.href;
+
                         return (
                           <Link
                             key={child.href}
                             href={child.href}
-                            className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+                            className={`
+                            block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                            ${
+                              isActive
+                                ? 'bg-[#2B60EA]/10 text-[#2B60EA] shadow-sm'
+                                : 'text-gray-500 hover:bg-white hover:text-[#2B60EA]'
+                            }
+                          `}
                           >
                             {child.name}
                           </Link>
                         );
                       })}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             }
-            // Regular nav item (only render if href is defined)
+
             if (item.href) {
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`
-                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                    ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }
-                  `}
+                  group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                  ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#EAF3FF] to-[#F4F9FF] text-[#2B60EA] shadow-sm ring-1 ring-blue-200/50'
+                      : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#2B60EA]'
+                  }
+                `}
                 >
-                  <span className={isActive ? 'text-blue-700' : 'text-gray-400'}>{item.icon}</span>
+                  <span
+                    className={`
+                    transition-colors
+                    ${isActive ? 'text-[#2B60EA]' : 'text-gray-400 group-hover:text-[#2B60EA]'}
+                  `}
+                  >
+                    {item.icon}
+                  </span>
+
                   {item.name}
                 </Link>
               );
             }
+
             return null;
           })}
         </div>
