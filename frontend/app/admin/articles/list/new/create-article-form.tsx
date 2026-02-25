@@ -4,11 +4,21 @@ import { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent, setContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import Toolbar, { editorExtensions } from '@/components/artical/toolbar';
 import InputEditable from '@/components/ui/input-editable';
+import { getCategories } from '@/services/articles';
 
 type ArticleStatus = 'draft' | 'published';
+
+type Category = {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: Date;
+  isActive: boolean;
+  header?: string;
+  image?: string;
+};
 
 function slugify(input: string) {
   return input
@@ -20,23 +30,25 @@ function slugify(input: string) {
 }
 
 export default function CreateArticleForm() {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    // Fetch categories from backend
-    fetch('/api/get-categories')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setCategories(data);
-        else if (Array.isArray(data.categories)) setCategories(data.categories);
-      })
-      .catch(() => setCategories(['General']));
+    const fetchCategories = async () => {
+      try {
+        const response = await getCategories();
+        console.log('Fetched categories:', response);
+        setCategories(response);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
   }, []);
   const router = useRouter();
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [category, setCategory] = useState('General');
+  const [category, setCategory] = useState<Category | null>(null);
   const [status, setStatus] = useState<ArticleStatus>('draft');
   const [isFeatured, setIsFeatured] = useState(false);
 
@@ -76,7 +88,7 @@ export default function CreateArticleForm() {
         body: JSON.stringify({
           title: title.trim(),
           slug: finalSlug,
-          category: category.trim(),
+          category: category?.id || null,
           status,
           isFeatured,
           content: editor?.getHTML() || '',
@@ -127,13 +139,17 @@ export default function CreateArticleForm() {
             <label className="mb-1 block text-sm font-medium text-slate-700">Category</label>
             <select
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:ring-2 focus:ring-[#2B4A75]/25"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              value={category?.id || ''}
+              onChange={(e) => {
+                const selectedId = parseInt(e.target.value, 10);
+                const selectedCategory = categories.find((cat) => cat.id === selectedId) || null;
+                setCategory(selectedCategory);
+              }}
             >
               {categories.length === 0 && <option value="General">General</option>}
               {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </select>
