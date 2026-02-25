@@ -15,7 +15,8 @@ export default function InputEditable({
   onConfirm,
   placeholder = 'Enter title...',
 }: InputEditableProps) {
-  const [isEditing, setIsEditing] = useState(true);
+  const safeValue = value || '';
+  const [isEditing, setIsEditing] = useState(() => !safeValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export default function InputEditable({
   }, [isEditing]);
 
   const handleConfirm = () => {
-    if (!value.trim()) return;
+    if (!safeValue.trim()) return;
     onConfirm?.();
     setIsEditing(false);
   };
@@ -36,7 +37,7 @@ export default function InputEditable({
       <div className="relative">
         <input
           ref={inputRef}
-          value={value}
+          value={safeValue}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -54,7 +55,7 @@ export default function InputEditable({
           "
         />
 
-        {value.trim() && (
+        {safeValue.trim() && (
           <button
             type="button"
             onClick={handleConfirm}
@@ -83,7 +84,7 @@ export default function InputEditable({
         hover:bg-slate-50 transition
       "
       >
-        {value}
+        {safeValue}
       </h1>
     </div>
   );

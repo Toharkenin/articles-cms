@@ -7,6 +7,7 @@
   --theme-blue: #457b9d;
   --theme-dark: #1d3557;
   --theme-light: #f1faee;
+  --success-green: #00a353;
 }
 
 @theme inline {

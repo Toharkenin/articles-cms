@@ -4,6 +4,9 @@ import { StatsCard } from '../../../../components/admin/states-card';
 import { StatusBadge } from '../../../../components/admin/status-badge';
 import { SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { GrView } from 'react-icons/gr';
+import { MdOutlineArticle } from 'react-icons/md';
+import { TbStatusChange } from 'react-icons/tb';
 
 type ArticleStatus = 'active' | 'inactive';
 interface Article {
@@ -84,9 +87,9 @@ export default function ArticlesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <StatsCard title="TOTAL ARTICLES" value={total} color="bg-[#E63946]" />
-        <StatsCard title="ACTIVE ARTICLES" value={active} color="bg-[#457B9D]" />
-        <StatsCard title="INACTIVE ARTICLES" value={inactive} color="bg-[#1D3557]" />
+        <StatsCard title="TOTAL ARTICLES" value={total} color="bg-theme-red" />
+        <StatsCard title="ACTIVE ARTICLES" value={active} color="bg-theme-blue" />
+        <StatsCard title="INACTIVE ARTICLES" value={inactive} color="bg-theme-dark" />
       </div>
 
       {/* Table */}
@@ -137,6 +140,7 @@ export default function ArticlesPage() {
                             /* TODO: handle view */ setOpenMenuId(null);
                           }}
                         >
+                          <GrView size={16} className="inline-block mr-2" />
                           View
                         </button>
                         <button
@@ -145,6 +149,7 @@ export default function ArticlesPage() {
                             /* TODO: handle preview */ setOpenMenuId(null);
                           }}
                         >
+                          <MdOutlineArticle size={16} className="inline-block mr-2" />
                           Preview
                         </button>
                         <button
@@ -153,6 +158,7 @@ export default function ArticlesPage() {
                             /* TODO: handle change status */ setOpenMenuId(null);
                           }}
                         >
+                          <TbStatusChange size={16} className="inline-block mr-2" />
                           Change Status
                         </button>
                       </div>
