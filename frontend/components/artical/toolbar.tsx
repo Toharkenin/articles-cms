@@ -67,9 +67,12 @@ const Toolbar = ({ editor }: { editor: any }) => {
   });
 
   const btn = (active: boolean) =>
-    `px-3 py-1 text-sm border rounded ${
-      active ? 'bg-blue-100 border-blue-400' : 'hover:bg-gray-100'
-    }`;
+    `px-3 py-1.5 text-sm rounded-lg transition-all duration-200
+   ${
+     active
+       ? 'bg-gradient-to-br from-[#2B4A75] to-[#3A5C88] text-white shadow-md scale-[1.03]'
+       : 'text-slate-700 hover:bg-blue-50'
+   }`;
 
   const mkBtnProps = () => ({
     type: 'button' as React.ButtonHTMLAttributes<any>['type'],
@@ -81,116 +84,123 @@ const Toolbar = ({ editor }: { editor: any }) => {
     editor.isActive('heading', { textAlign: align });
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 p-2 bg-white sticky top-0 z-10">
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={btn(editorState.h1)}
-      >
-        <span className="font-bold">H1</span>
-      </button>
+    <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+        <div className="flex items-center gap-1 bg-slate-100/70 rounded-xl p-1">
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={btn(editorState.h1)}
+          >
+            H1
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={btn(editorState.h2)}
-      >
-        <span className="font-bold">H2</span>
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={btn(editorState.h2)}
+          >
+            H2
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        className={btn(editorState.h3)}
-      >
-        <span className="font-bold">H3</span>
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={btn(editorState.h3)}
+          >
+            H3
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().setParagraph().run()}
-        className={btn(editorState.paragraph)}
-      >
-        <span className="font-bold">P</span>
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().setParagraph().run()}
+            className={btn(editorState.paragraph)}
+          >
+            P
+          </button>
+        </div>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().setTextAlign('left').run()}
-        className={btn(editorState.left)}
-        title="Align Left"
-      >
-        <FaAlignLeft size={18} />
-      </button>
+        <div className="flex items-center gap-1 bg-slate-100/70 rounded-xl p-1">
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            className={btn(editorState.left)}
+          >
+            <FaAlignLeft size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().setTextAlign('center').run()}
-        className={btn(editorState.center)}
-        title="Align Center"
-      >
-        <FaAlignJustify size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            className={btn(editorState.center)}
+          >
+            <FaAlignJustify size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().setTextAlign('right').run()}
-        className={btn(editorState.right)}
-        title="Align Right"
-      >
-        <FaAlignRight size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            className={btn(editorState.right)}
+          >
+            <FaAlignRight size={16} />
+          </button>
+        </div>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        className={btn(editorState.bold)}
-      >
-        <FaBold size={18} />
-      </button>
+        <div className="flex items-center gap-1 bg-slate-100/70 rounded-xl p-1">
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={btn(editorState.bold)}
+          >
+            <FaBold size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={btn(editorState.italic)}
-      >
-        <FaItalic size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={btn(editorState.italic)}
+          >
+            <FaItalic size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={btn(editorState.underline)}
-      >
-        <FaUnderline size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={btn(editorState.underline)}
+          >
+            <FaUnderline size={16} />
+          </button>
+        </div>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={btn(editorState.quote)}
-      >
-        <FaQuoteLeft size={18} />
-      </button>
+        <div className="flex items-center gap-1 bg-slate-100/70 rounded-xl p-1">
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={btn(editorState.quote)}
+          >
+            <FaQuoteLeft size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={btn(editorState.ul)}
-      >
-        <FaListUl size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={btn(editorState.ul)}
+          >
+            <FaListUl size={16} />
+          </button>
 
-      <button
-        {...mkBtnProps()}
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={btn(editorState.ol)}
-      >
-        <FaListOl size={18} />
-      </button>
+          <button
+            {...mkBtnProps()}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={btn(editorState.ol)}
+          >
+            <FaListOl size={16} />
+          </button>
+        </div>
 
-      <div className="ml-auto">
-        <BlockMenu editor={editor} />
+        <div className="ml-auto">
+          <BlockMenu editor={editor} />
+        </div>
       </div>
     </div>
   );
