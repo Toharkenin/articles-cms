@@ -22,7 +22,13 @@ export const getCategories = async (): Promise<Category[]> => {
 
 export const setCategory = async (name: string, description?: string): Promise<Category> => {
   try {
-    const response = await axiosInstance.post('/articles/set-category', { name, description });
+    const formData = new FormData();
+    formData.append('name', name);
+    if (description) {
+      formData.append('description', description);
+    }
+
+    const response = await axiosInstance.post('/articles/set-category', formData);
     return response.data;
   } catch (error) {
     throw error;

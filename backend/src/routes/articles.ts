@@ -14,7 +14,7 @@ router.get('/get-categories', async (req, res) => {
 
 router.post('/set-category', async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, image } = req.body;
 
     if (!name) {
       return res.status(400).json({ success: false, message: 'Name is required' });
@@ -22,11 +22,12 @@ router.post('/set-category', async (req, res) => {
     // Find the highest current id
     const lastCategory = await CategoryModel.findOne().sort({ id: -1 });
     const nextId = lastCategory && lastCategory.id ? lastCategory.id + 1 : 1;
-
+    console.log('Next category ID:', nextId);
     const newCategory = new CategoryModel({
       id: nextId,
       name,
       description: description || '',
+      image: image || '',
       createdAt: new Date(),
       isActive: true,
     });
