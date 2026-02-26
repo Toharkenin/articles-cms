@@ -40,23 +40,27 @@ body {
   font-size: 18px;
 }
 
+.prosemirror-editor {
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .ProseMirror > * + * {
   margin-top: 0.75em;
 }
 
 .ProseMirror h1 {
   font-size: 2.2rem;
-  margin: 1.2em 0 0.6em;
 }
 
 .ProseMirror h2 {
   font-size: 1.6rem;
-  margin: 1.2em 0 0.6em;
 }
 
 .ProseMirror h3 {
   font-size: 1.3rem;
-  margin: 1em 0 0.5em;
 }
 
 .ProseMirror p {
