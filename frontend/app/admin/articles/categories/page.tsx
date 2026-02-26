@@ -1,8 +1,7 @@
 'use client';
 
 import { StatusBadge } from '@/components/admin/status-badge';
-import NewCategoryPopup from '@/components/artical/new-category-popup';
-import Popup from '@/components/ui/popup';
+import NewCategoryPopup from '@/components/article/new-category-popup';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { changeCategoryStatus, getCategories } from '@/services/articles';
 import { SlidersHorizontal } from 'lucide-react';
