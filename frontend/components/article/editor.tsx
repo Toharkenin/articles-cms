@@ -7,6 +7,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Youtube from '@tiptap/extension-youtube';
 import TextAlign from '@tiptap/extension-text-align';
+import { Node } from '@tiptap/core';
 import Toolbar from '@/components/article/toolbar';
 
 type Props = {
@@ -14,6 +15,37 @@ type Props = {
 };
 
 export default function ArticleEditor({ onChange }: Props) {
+  const Video = Node.create({
+    name: 'video',
+    group: 'block',
+    atom: true,
+    draggable: true,
+    addAttributes() {
+      return {
+        src: { default: null },
+        controls: { default: true },
+      };
+    },
+    parseHTML() {
+      return [{ tag: 'video[src]' }];
+    },
+    renderHTML({ HTMLAttributes }) {
+      return ['video', { ...HTMLAttributes, style: 'max-width: 100%;' }, 0];
+    },
+    addCommands() {
+      return {
+        setVideo:
+          (options: { src: string }) =>
+          ({ commands }: any) => {
+            return commands.insertContent({
+              type: this.name,
+              attrs: options,
+            });
+          },
+      } as any;
+    },
+  });
+
   const KeepHeadingOnEnter = Extension.create({
     name: 'keepHeadingOnEnter',
     priority: 1000,
@@ -48,7 +80,8 @@ export default function ArticleEditor({ onChange }: Props) {
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Image.configure({ inline: false, allowBase64: false }),
+      Image.configure({ inline: false, allowBase64: true }),
+      Video,
       Youtube.configure({ inline: false, width: 640, height: 360 }),
       Link.configure({ openOnClick: false }),
       Placeholder.configure({
