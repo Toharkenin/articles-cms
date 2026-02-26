@@ -1,7 +1,8 @@
 'use client';
+import { getAdminProfile } from '@/services/auth';
 
 import { createGenericContext } from './create-context';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useCallback } from 'react';
 
 type AuthContextData = {
   isLoggedIn: boolean;
@@ -16,17 +17,17 @@ const [useAuthContextInternal, AuthContextProviderInternal] =
 export const useAuthContext = () => useAuthContextInternal();
 
 export default function AuthContextWrapper({ children }: { children: ReactNode }) {
-  const login = (token: string) => {
+  const login = useCallback((token: string) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('authToken', token);
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('authToken');
     }
-  };
+  }, []);
 
   return (
     <AuthContextProviderInternal
@@ -42,34 +43,44 @@ export default function AuthContextWrapper({ children }: { children: ReactNode }
   );
 }
 
-import { getAdminProfile } from '@/services/auth';
-
 function AuthInitializer({ children }: { children: ReactNode }) {
-  const { update } = useAuthContextInternal();
+  const { update, value } = useAuthContextInternal();
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-  let isMounted = true;
+    // Skip if already logged in or already checked
+    if (value.isLoggedIn || checked) return;
 
-  async function checkAuth() {
-    try {
-      await getAdminProfile(); 
-      if (isMounted) {
-        update({ isLoggedIn: true, isAuthLoading: false });
-      }
-    } catch {
-      if (isMounted) {
+    let isMounted = true;
+
+    async function checkAuth() {
+      if (typeof window !== 'undefined' && window.location.pathname === '/admin/login') {
         update({ isLoggedIn: false, isAuthLoading: false });
+        setChecked(true);
+        return;
+      }
+
+      try {
+        await getAdminProfile();
+        if (isMounted) {
+          update({ isLoggedIn: true, isAuthLoading: false });
+          setChecked(true);
+        }
+      } catch {
+        if (isMounted) {
+          update({ isLoggedIn: false, isAuthLoading: false });
+          setChecked(true);
+        }
       }
     }
-  }
 
-  checkAuth();
+    checkAuth();
 
-  return () => {
-    isMounted = false;
-  };
-}, [update]);
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checked, value.isLoggedIn]);
 
   return <>{children}</>;
 }

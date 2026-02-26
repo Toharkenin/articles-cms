@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { getAdminProfile } from '@/services/auth';
+import { adminLogout, getAdminProfile } from '@/services/auth';
 
 interface Profile {
   admin: {
@@ -64,6 +64,17 @@ export default function ProfileDropdown({
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await adminLogout();
+      logout();
+      update({ isLoggedIn: false });
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Avatar Button */}
@@ -111,12 +122,7 @@ export default function ProfileDropdown({
             </Link>
 
             <button
-              onClick={() => {
-                setOpen(false);
-                logout();
-                update({ isLoggedIn: false });
-                router.push('/admin/login');
-              }}
+              onClick={handleLogout}
               className="flex items-center gap-2 w-full text-left 
                        px-4 py-2 text-sm text-red-600 
                        hover:bg-red-50 transition-colors"
