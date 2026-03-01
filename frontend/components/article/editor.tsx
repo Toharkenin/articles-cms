@@ -29,6 +29,9 @@ export default function ArticleEditor({ onChange }: Props) {
         height: {
           default: null,
         },
+        offsetX: {
+          default: 0,
+        },
       };
     },
     addNodeView() {
@@ -48,6 +51,7 @@ export default function ArticleEditor({ onChange }: Props) {
         controls: { default: true },
         width: { default: null },
         height: { default: null },
+        offsetX: { default: 0 },
       };
     },
     parseHTML() {
@@ -60,6 +64,9 @@ export default function ArticleEditor({ onChange }: Props) {
               src: element.getAttribute('src'),
               width: element.getAttribute('width'),
               height: element.getAttribute('height'),
+              offsetX: element.getAttribute('data-offset-x')
+                ? parseInt(element.getAttribute('data-offset-x')!)
+                : 0,
             };
           },
         },
@@ -73,6 +80,7 @@ export default function ArticleEditor({ onChange }: Props) {
           controls: HTMLAttributes.controls,
           width: HTMLAttributes.width,
           height: HTMLAttributes.height,
+          'data-offset-x': HTMLAttributes.offsetX || 0,
           style:
             HTMLAttributes.width && HTMLAttributes.height
               ? `width: ${HTMLAttributes.width}px; height: ${HTMLAttributes.height}px;`

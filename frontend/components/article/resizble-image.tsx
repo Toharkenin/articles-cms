@@ -5,22 +5,15 @@ import { useState, useRef, useEffect } from 'react';
 
 export default function ResizableImageComponent({ node, updateAttributes, selected }: any) {
   const [isResizing, setIsResizing] = useState(false);
+  const [isDraggingX, setIsDraggingX] = useState(false);
   const [dimensions, setDimensions] = useState({
     width: node.attrs.width || null,
     height: node.attrs.height || null,
   });
+  const [offsetX, setOffsetX] = useState(node.attrs.offsetX || 0);
   const imageRef = useRef<HTMLImageElement>(null);
-  const startPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const startPos = useRef({ x: 0, y: 0, width: 0, height: 0, offsetX: 0 });
   const resizeDirection = useRef<string>('');
-
-  useEffect(() => {
-    if (!isResizing && dimensions.width && dimensions.height) {
-      updateAttributes({
-        width: Math.round(dimensions.width),
-        height: Math.round(dimensions.height),
-      });
-    }
-  }, [isResizing, dimensions.width, dimensions.height]);
 
   const startResize = (e: React.MouseEvent, direction: string) => {
     e.preventDefault();
@@ -36,6 +29,7 @@ export default function ResizableImageComponent({ node, updateAttributes, select
         y: e.clientY,
         width: dimensions.width || rect.width,
         height: dimensions.height || rect.height,
+        offsetX: 0,
       };
     }
   };
@@ -64,7 +58,6 @@ export default function ResizableImageComponent({ node, updateAttributes, select
         newHeight = Math.max(50, startPos.current.height - deltaY);
       }
 
-      // For corner resizing, maintain aspect ratio
       if (direction.length === 2) {
         if (direction.includes('e') || direction.includes('w')) {
           newHeight = newWidth / aspectRatio;
@@ -78,6 +71,10 @@ export default function ResizableImageComponent({ node, updateAttributes, select
 
     const handleMouseUp = () => {
       setIsResizing(false);
+      updateAttributes({
+        width: Math.round(dimensions.width),
+        height: Math.round(dimensions.height),
+      });
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -87,7 +84,36 @@ export default function ResizableImageComponent({ node, updateAttributes, select
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isResizing, dimensions]);
+
+  const startDragX = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingX(true);
+    startPos.current.x = e.clientX;
+    startPos.current.offsetX = offsetX;
+  };
+
+  useEffect(() => {
+    if (!isDraggingX) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - startPos.current.x;
+      setOffsetX(startPos.current.offsetX + deltaX);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingX(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingX]);
 
   const currentWidth = dimensions.width || imageRef.current?.naturalWidth || 'auto';
   const currentHeight = dimensions.height || imageRef.current?.naturalHeight || 'auto';
@@ -95,13 +121,15 @@ export default function ResizableImageComponent({ node, updateAttributes, select
   return (
     <NodeViewWrapper
       className="resizable-image-node"
-      style={{ display: 'inline-block', position: 'relative', margin: '1em 0' }}
+      style={{ display: 'block', position: 'relative', margin: '1em 0' }}
     >
       <div
         style={{
           position: 'relative',
           display: 'inline-block',
           maxWidth: '100%',
+          transform: `translateX(${offsetX}px)`,
+          transition: isDraggingX ? 'none' : 'transform 0.1s ease-out',
         }}
       >
         <img
@@ -116,21 +144,54 @@ export default function ResizableImageComponent({ node, updateAttributes, select
             display: 'block',
             borderRadius: '12px',
             userSelect: 'none',
-            cursor: selected ? 'move' : 'default',
+            cursor: selected ? (isDraggingX ? 'ew-resize' : 'move') : 'default',
           }}
           draggable={false}
         />
 
-        {selected && !isResizing && (
+        {selected && !isResizing && !isDraggingX && (
           <>
+            {/* Horizontal Drag handle */}
+            <div
+              onMouseDown={startDragX}
+              style={{
+                position: 'absolute',
+                top: '-32px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '6px 12px',
+                background: '#10b981',
+                color: 'white',
+                borderRadius: '8px',
+                cursor: 'ew-resize',
+                fontSize: '12px',
+                fontWeight: '500',
+                zIndex: 10,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path
+                  d="M2 6H10M2 6L4 4M2 6L4 8M10 6L8 4M10 6L8 8"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Drag X: {Math.round(offsetX)}px
+            </div>
+
             {/* Drag/Move handle */}
             <div
               data-drag-handle
               style={{
                 position: 'absolute',
                 top: '-32px',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                right: '0',
                 padding: '6px 12px',
                 background: '#3b82f6',
                 color: 'white',
@@ -153,7 +214,7 @@ export default function ResizableImageComponent({ node, updateAttributes, select
                   strokeLinecap="round"
                 />
               </svg>
-              Drag to move
+              Reorder
             </div>
 
             {/* Corner handles */}
