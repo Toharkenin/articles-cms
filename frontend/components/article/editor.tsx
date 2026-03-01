@@ -9,28 +9,79 @@ import Youtube from '@tiptap/extension-youtube';
 import TextAlign from '@tiptap/extension-text-align';
 import { Node } from '@tiptap/core';
 import Toolbar from '@/components/article/toolbar';
+import { ReactNodeViewRenderer } from '@tiptap/react';
+import ResizableImageComponent from './resizble-image';
+import ResizableVideoComponent from './resizable-video';
 
 type Props = {
   onChange?: (json: any, html: string) => void;
 };
 
 export default function ArticleEditor({ onChange }: Props) {
+  const CustomImage = Image.extend({
+    draggable: true,
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        width: {
+          default: null,
+        },
+        height: {
+          default: null,
+        },
+      };
+    },
+    addNodeView() {
+      return ReactNodeViewRenderer(ResizableImageComponent);
+    },
+  });
+
   const Video = Node.create({
     name: 'video',
     group: 'block',
     atom: true,
     draggable: true,
+    inline: false,
     addAttributes() {
       return {
         src: { default: null },
         controls: { default: true },
+        width: { default: null },
+        height: { default: null },
       };
     },
     parseHTML() {
-      return [{ tag: 'video[src]' }];
+      return [
+        {
+          tag: 'video[src]',
+          getAttrs: (dom) => {
+            const element = dom as HTMLVideoElement;
+            return {
+              src: element.getAttribute('src'),
+              width: element.getAttribute('width'),
+              height: element.getAttribute('height'),
+            };
+          },
+        },
+      ];
     },
     renderHTML({ HTMLAttributes }) {
-      return ['video', { ...HTMLAttributes, style: 'max-width: 100%;' }, 0];
+      return [
+        'video',
+        {
+          src: HTMLAttributes.src,
+          controls: HTMLAttributes.controls,
+          width: HTMLAttributes.width,
+          height: HTMLAttributes.height,
+          style:
+            HTMLAttributes.width && HTMLAttributes.height
+              ? `width: ${HTMLAttributes.width}px; height: ${HTMLAttributes.height}px;`
+              : undefined,
+        },
+      ];
+    },
+    addNodeView() {
+      return ReactNodeViewRenderer(ResizableVideoComponent);
     },
     addCommands() {
       return {
@@ -49,21 +100,19 @@ export default function ArticleEditor({ onChange }: Props) {
   const KeepHeadingOnEnter = Extension.create({
     name: 'keepHeadingOnEnter',
     priority: 1000,
+
     addKeyboardShortcuts() {
       return {
         Enter: ({ editor }) => {
-          const { state } = editor;
-          const { $from } = state.selection;
+          const { $from } = editor.state.selection;
 
-          if ($from.parent.type.name === 'heading') {
-            editor.commands.splitBlock();
-            editor.commands.setNode('heading', {
-              level: $from.parent.attrs.level,
-            });
-            return true;
+          if ($from.parent.type.name !== 'heading') {
+            return false;
           }
 
-          return false;
+          const level = $from.parent.attrs.level;
+
+          return editor.chain().focus().splitBlock().setNode('heading', { level }).run();
         },
       };
     },
@@ -80,7 +129,7 @@ export default function ArticleEditor({ onChange }: Props) {
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Image.configure({ inline: false, allowBase64: true }),
+      CustomImage.configure({ inline: false, allowBase64: true }),
       Video,
       Youtube.configure({ inline: false, width: 640, height: 360 }),
       Link.configure({ openOnClick: false }),
