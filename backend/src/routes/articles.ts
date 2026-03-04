@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import CategoryModel from '../models/categories';
+import { Article } from '../logic/article';
+import { requireAdminAuth } from '../middleware/admin-auth';
 
 const router = Router();
 
@@ -72,6 +74,58 @@ router.post('/update-category/:id', async (req, res) => {
     await category.save();
     res.json({ success: true, message: 'Category updated successfully', category });
   } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.post('/save-article', requireAdminAuth, async (req, res) => {
+  try {
+    const {
+      articleId,
+      title,
+      slug,
+      category,
+      contentJson,
+      contentHtml,
+      isFeatured,
+      status,
+      featuredImage,
+    } = req.body;
+
+    const admin = req.admin;
+    if (!admin) {
+      return res.status(401).json({ success: false, message: 'Unauthorized - admin not found' });
+    }
+
+    const author = `${admin.firstName} ${admin.lastName}`;
+
+    const result = await new Article().saveArticle({
+      articleId,
+      title,
+      slug,
+      author,
+      category,
+      contentJson,
+      contentHtml,
+      isFeatured,
+      status,
+      featuredImage,
+    });
+
+    if (!result || !result.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: result?.message || 'Failed to save article' });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: result.message,
+      article: result.data,
+      articleId: result.articleId,
+    });
+  } catch (error) {
+    console.error('Create article error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
