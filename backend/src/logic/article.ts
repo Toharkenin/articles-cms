@@ -31,7 +31,11 @@ export class Article {
       // If no articleId, create new draft
       if (!articleId) {
         const newArticleId = crypto.randomUUID();
+        // Find the highest current id
+        const lastArticle = await ArticleModel.findOne().sort({ id: -1 });
+        const nextId = lastArticle && lastArticle.id ? lastArticle.id + 1 : 1;
         const newArticle = new ArticleModel({
+          id: nextId,
           articleId: newArticleId,
           title: title || '',
           slug: slug || '',
@@ -113,6 +117,22 @@ export class Article {
       return {
         success: false,
         message: 'An error occurred while saving article',
+      };
+    }
+  }
+
+  async getArticles() {
+    try {
+      const articles = await ArticleModel.find().populate('category');
+      return {
+        success: true,
+        data: articles,
+      };
+    } catch (error) {
+      console.error('Get articles error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching articles',
       };
     }
   }

@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Article extends Document {
+  id: number;
   articleId: string;
   title?: string;
   slug: string;
@@ -16,6 +17,11 @@ export interface Article extends Document {
 }
 
 const ArticleSchema: Schema = new Schema({
+  id: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
   articleId: {
     type: String,
     required: true,
