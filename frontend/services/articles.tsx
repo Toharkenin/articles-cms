@@ -78,3 +78,12 @@ export const saveArticle = async (payload: {
     throw error;
   }
 };
+
+export const fetchArticles = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.get('/articles/get-articles');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
