@@ -51,6 +51,8 @@ export default function CreateArticleForm() {
   const [error, setError] = useState<string | null>(null);
   const [didRestore, setDidRestore] = useState(false);
   const [createdAt] = useState(new Date());
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const autoSlug = useMemo(() => slugify(title), [title]);
 
@@ -58,6 +60,16 @@ export default function CreateArticleForm() {
     const finalSlug = (slug || autoSlug).trim();
     return title.trim() !== '' && finalSlug !== '' && contentHtml?.trim() !== '';
   }, [title, slug, autoSlug, contentHtml]);
+
+  const hasAnyFieldFilled = useMemo(() => {
+    return (
+      title.trim() !== '' ||
+      slug.trim() !== '' ||
+      category !== null ||
+      contentHtml?.trim() !== '' ||
+      featuredImageUrl !== ''
+    );
+  }, [title, slug, category, contentHtml, featuredImageUrl]);
 
   const draftData = useMemo(
     () => ({
@@ -184,13 +196,17 @@ export default function CreateArticleForm() {
 
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
 
-    const finalSlug = (slug || autoSlug).trim();
+    // Only validate if we're publishing
+    if (submitStatus === 'published') {
+      setError(null);
 
-    if (!title.trim()) return setError('Title is required.');
-    if (!finalSlug) return setError('Slug is required.');
-    if (!contentHtml?.trim()) return setError('Content is required.');
+      const finalSlug = (slug || autoSlug).trim();
+
+      if (!title.trim()) return setError('Title is required.');
+      if (!finalSlug) return setError('Slug is required.');
+      if (!contentHtml?.trim()) return setError('Content is required.');
+    }
 
     try {
       setIsSaving(true);
@@ -198,7 +214,7 @@ export default function CreateArticleForm() {
       const payload = {
         articleId,
         title: title.trim(),
-        slug: finalSlug,
+        slug: (slug || autoSlug).trim(),
         category,
         isFeatured,
         createdAt,
@@ -210,15 +226,31 @@ export default function CreateArticleForm() {
 
       await saveArticle(payload);
 
-      // Clear local storage after successful submission
-      isSubmittingRef.current = true;
-      if (storageKey) {
-        localStorage.removeItem(storageKey);
-      }
-      // Also remove draft-new if it exists
-      localStorage.removeItem('draft-new');
+      // Only redirect and clear if publishing
+      if (submitStatus === 'published') {
+        // Show success toast
+        setToastMessage('Article published successfully!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
 
-      router.push('/admin/articles/list');
+        // Clear local storage after successful submission
+        isSubmittingRef.current = true;
+        if (storageKey) {
+          localStorage.removeItem(storageKey);
+        }
+        // Also remove draft-new if it exists
+        localStorage.removeItem('draft-new');
+
+        router.push('/admin/articles/list');
+      } else {
+        // For draft, show toast and reset status
+        setToastMessage('Draft saved successfully!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+
+        setSubmitStatus(null);
+        setError(null);
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || 'Something went wrong.');
     } finally {
@@ -228,6 +260,12 @@ export default function CreateArticleForm() {
 
   return (
     <div>
+      {showToast && (
+        <div className="fixed top-6 right-6 bg-[#00a353] text-white px-6 py-3 rounded-xl shadow-lg z-50 transition-all duration-300">
+          {toastMessage}
+        </div>
+      )}
+
       <form onSubmit={onSubmit} className="rounded-1xl bg-white py-10 px-26 shadow-sm w-full">
         <div className="grid gap-5">
           <div>
@@ -450,7 +488,7 @@ export default function CreateArticleForm() {
 
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={!hasAnyFieldFilled || isSaving}
               onClick={() => setSubmitStatus('draft')}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
             >

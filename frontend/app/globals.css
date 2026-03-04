@@ -17,6 +17,7 @@
   --color-theme-blue: var(--theme-blue);
   --color-theme-dark: var(--theme-dark);
   --color-theme-light: var(--theme-light);
+  --color-success-green: var(--success-green);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

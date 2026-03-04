@@ -98,7 +98,7 @@ export default function CategoryViewPage() {
   return (
     <div className="w-[92%] max-w-6xl mx-auto py-12">
       {showToast && (
-        <div className="fixed top-6 right-6 bg-success-green text-white px-6 py-3 rounded-xl shadow-lg z-50 transition-all duration-300">
+        <div className="fixed top-6 right-6 bg-[#00a353] text-white px-6 py-3 rounded-xl shadow-lg z-50 transition-all duration-300">
           Successfully updated
         </div>
       )}
