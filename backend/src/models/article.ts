@@ -1,32 +1,37 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Article extends Document {
-  title: string;
+  articleId: string;
+  title?: string;
   slug: string;
   author: string;
   category: mongoose.Types.ObjectId;
-  image: string;
-  isFeatured: boolean;
-  createdAt: Date;
-  isActive: boolean;
-  contentJson: Object;
+  isFeatured?: boolean;
+  createdAt?: Date;
+  status: 'draft' | 'published' | 'inactive' | 'archived';
+  contentJson?: Object;
   contentHtml?: string;
   featuredImage?: string;
   languages?: string[];
 }
 
 const ArticleSchema: Schema = new Schema({
-  title: {
+  articleId: {
     type: String,
     required: true,
+    unique: true,
+  },
+  title: {
+    type: String,
+    required: false,
   },
   slug: {
     type: String,
-    required: true,
+    required: false,
   },
   contentJson: {
     type: Object,
-    required: true,
+    required: false,
   },
   contentHtml: {
     type: String,
@@ -34,24 +39,21 @@ const ArticleSchema: Schema = new Schema({
   },
   author: {
     type: String,
-    required: true,
+    required: false,
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: true,
-  },
-  image: {
-    type: String,
-    required: true,
+    required: false,
   },
   isFeatured: {
     type: Boolean,
     default: false,
   },
-  isActive: {
-    type: Boolean,
-    default: true,
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'inactive', 'archived'],
+    default: 'draft',
   },
   createdAt: {
     type: Date,
