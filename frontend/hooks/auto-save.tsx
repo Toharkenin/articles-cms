@@ -29,7 +29,6 @@ export function useAutoSave({ articleId, content, onArticleIdReceived }: AutoSav
     const {
       title,
       slug,
-      author,
       category,
       isFeatured,
       createdAt,
@@ -42,7 +41,6 @@ export function useAutoSave({ articleId, content, onArticleIdReceived }: AutoSav
       articleId,
       title,
       slug,
-      author,
       category,
       isFeatured,
       createdAt,

@@ -64,13 +64,12 @@ export default function CreateArticleForm() {
       articleId,
       title,
       slug,
-      author: 'admin',
       category,
       isFeatured,
       createdAt,
       contentJson,
       contentHtml,
-      featuredImageUrl,
+      featuredImage: featuredImageUrl,
     }),
     [
       articleId,
@@ -141,7 +140,7 @@ export default function CreateArticleForm() {
         if (savedData.isFeatured) setIsFeatured(savedData.isFeatured);
         if (savedData.contentJson) setContentJson(savedData.contentJson);
         if (savedData.contentHtml) setContentHtml(savedData.contentHtml);
-        if (savedData.featuredImageUrl) setFeaturedImageUrl(savedData.featuredImageUrl);
+        if (savedData.featuredImage) setFeaturedImageUrl(savedData.featuredImage);
       } catch (err) {
         console.error('Failed to restore draft:', err);
       }
@@ -196,19 +195,20 @@ export default function CreateArticleForm() {
     try {
       setIsSaving(true);
 
-      await saveArticle({
+      const payload = {
         articleId,
         title: title.trim(),
         slug: finalSlug,
-        author: 'admin',
-        category: category?.id || 0,
+        category,
         isFeatured,
-        createdAt: new Date(),
+        createdAt,
         status: submitStatus || 'draft',
         contentJson,
-        contentHtml,
-        featuredImage: featuredImageUrl || '',
-      });
+        ...(contentHtml && { contentHtml }),
+        ...(featuredImageUrl && { featuredImage: featuredImageUrl }),
+      };
+
+      await saveArticle(payload);
 
       // Clear local storage after successful submission
       isSubmittingRef.current = true;
@@ -218,7 +218,7 @@ export default function CreateArticleForm() {
       // Also remove draft-new if it exists
       localStorage.removeItem('draft-new');
 
-      router.push('/admin/articles');
+      router.push('/admin/articles/list');
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || 'Something went wrong.');
     } finally {
