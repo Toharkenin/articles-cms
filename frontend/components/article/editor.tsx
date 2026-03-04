@@ -12,12 +12,15 @@ import Toolbar from '@/components/article/toolbar';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import ResizableImageComponent from './resizble-image';
 import ResizableVideoComponent from './resizable-video';
+import { useEffect, useRef } from 'react';
 
 type Props = {
   onChange?: (json: any, html: string) => void;
+  initialContent?: any;
 };
 
-export default function ArticleEditor({ onChange }: Props) {
+export default function ArticleEditor({ onChange, initialContent }: Props) {
+  const hydratingRef = useRef(false);
   const CustomImage = Image.extend({
     draggable: true,
     addAttributes() {
@@ -153,9 +156,21 @@ export default function ArticleEditor({ onChange }: Props) {
       },
     },
     onUpdate({ editor }) {
+      if (hydratingRef.current) return;
       onChange?.(editor.getJSON(), editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    if (!initialContent) return;
+
+    hydratingRef.current = true;
+    editor.commands.setContent(initialContent, {
+      emitUpdate: false,
+    });
+    hydratingRef.current = false;
+  }, [editor, initialContent]);
 
   if (!editor) return null;
 

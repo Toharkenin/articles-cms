@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import InputEditable from '@/components/ui/input-editable';
 import ArticleEditor from '@/components/article/editor';
 import { saveArticle, getCategories } from '@/services/articles';
@@ -31,6 +31,8 @@ function slugify(input: string) {
 
 export default function CreateArticleForm() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isSubmittingRef = useRef(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [articleId, setArticleId] = useState<string | undefined>(undefined);
@@ -48,6 +50,7 @@ export default function CreateArticleForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [didRestore, setDidRestore] = useState(false);
+  const [createdAt] = useState(new Date());
 
   const autoSlug = useMemo(() => slugify(title), [title]);
 
@@ -61,13 +64,25 @@ export default function CreateArticleForm() {
       articleId,
       title,
       slug,
+      author: 'admin',
       category,
       isFeatured,
+      createdAt,
       contentJson,
       contentHtml,
       featuredImageUrl,
     }),
-    [articleId, title, slug, category, isFeatured, contentJson, contentHtml, featuredImageUrl]
+    [
+      articleId,
+      title,
+      slug,
+      category,
+      isFeatured,
+      createdAt,
+      contentJson,
+      contentHtml,
+      featuredImageUrl,
+    ]
   );
 
   useEffect(() => {
@@ -83,32 +98,38 @@ export default function CreateArticleForm() {
   }, []);
 
   useEffect(() => {
-    // Look for draft in localStorage - check all draft-* keys
+    // Look for the most recent draft in localStorage
     let savedData = null;
-    let foundKey = null;
 
-    // First try draft-new
-    const newKey = 'draft-new';
-    const newDraft = localStorage.getItem(newKey);
-    if (newDraft) {
-      try {
+    try {
+      // Check for draft-new first (new articles)
+      const newDraft = localStorage.getItem('draft-new');
+      if (newDraft) {
         const parsed = JSON.parse(newDraft);
         savedData = parsed;
-        foundKey = newKey;
 
-        // If this draft has an articleId, check if there's a more recent version
+        // If this draft already has an articleId from backend, check the specific draft
         if (parsed.articleId) {
-          const articleKey = `draft-${parsed.articleId}`;
-          const articleDraft = localStorage.getItem(articleKey);
-          if (articleDraft) {
-            const articleParsed = JSON.parse(articleDraft);
-            savedData = articleParsed;
-            foundKey = articleKey;
+          const specificDraft = localStorage.getItem(`draft-${parsed.articleId}`);
+          if (specificDraft) {
+            savedData = JSON.parse(specificDraft);
           }
         }
-      } catch (err) {
-        console.error('Failed to parse draft:', err);
+      } else {
+        // If no draft-new, scan localStorage for any draft-* keys (in case page was refreshed after articleId received)
+        const allKeys = Object.keys(localStorage);
+        const draftKeys = allKeys.filter((key) => key.startsWith('draft-') && key !== 'draft-new');
+
+        if (draftKeys.length > 0) {
+          // Use the first draft found (there should typically only be one for new articles)
+          const draftContent = localStorage.getItem(draftKeys[0]);
+          if (draftContent) {
+            savedData = JSON.parse(draftContent);
+          }
+        }
       }
+    } catch (err) {
+      console.error('Failed to parse draft:', err);
     }
 
     if (savedData) {
@@ -135,18 +156,23 @@ export default function CreateArticleForm() {
     storageKey,
   } = useAutoSave({
     articleId,
-    content: draftData,
+    content: didRestore ? draftData : null,
     onArticleIdReceived: (id) => setArticleId(id),
   });
 
-  // Clean up local storage when leaving the page
+  // Clean up drafts when navigating away (but not when submitting)
   useEffect(() => {
     return () => {
-      if (storageKey) {
-        localStorage.removeItem(storageKey);
+      // Only clean up if not navigating due to form submission
+      if (!isSubmittingRef.current) {
+        // Remove both draft-new and draft-{articleId} if they exist
+        localStorage.removeItem('draft-new');
+        if (articleId) {
+          localStorage.removeItem(`draft-${articleId}`);
+        }
       }
     };
-  }, [storageKey]);
+  }, [articleId]);
 
   // Clean up blob URL on unmount
   useEffect(() => {
@@ -185,9 +211,12 @@ export default function CreateArticleForm() {
       });
 
       // Clear local storage after successful submission
+      isSubmittingRef.current = true;
       if (storageKey) {
         localStorage.removeItem(storageKey);
       }
+      // Also remove draft-new if it exists
+      localStorage.removeItem('draft-new');
 
       router.push('/admin/articles');
     } catch (err: any) {
