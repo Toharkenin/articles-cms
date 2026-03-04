@@ -130,4 +130,14 @@ router.post('/save-article', requireAdminAuth, async (req, res) => {
   }
 });
 
+router.get('/get-articles', requireAdminAuth, async (req, res) => {
+  try {
+    const getArticles = await new Article().getArticles();
+    res.json({ success: true, articles: getArticles });
+  } catch (error) {
+    console.error('Create article error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
 export default router;
