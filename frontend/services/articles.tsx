@@ -13,7 +13,6 @@ interface Category {
 export const getCategories = async (): Promise<Category[]> => {
   try {
     const response = await axiosInstance.get('/articles/get-categories', {});
-    console.log('getCategories response:', response.data);
     return response.data;
   } catch (error) {
     throw error;
@@ -53,6 +52,27 @@ export const updateCategory = async (
       name,
       description,
     });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const saveArticle = async (payload: {
+  articleId?: string;
+  title?: string;
+  slug?: string;
+  category?: any;
+  isFeatured?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  status: 'draft' | 'published';
+  contentJson?: Object;
+  contentHtml?: string;
+  featuredImage?: string;
+}): Promise<any> => {
+  try {
+    const response = await axiosInstance.post('/articles/save-article', payload);
     return response.data;
   } catch (error) {
     throw error;
