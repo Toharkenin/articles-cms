@@ -1,13 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { StatsCard } from '../../../../components/admin/states-card';
-import { ArticleStatusBadge } from '../../../../components/admin/article-status-badge';
+import { StatsCard } from '../../../components/admin/states-card';
+import { ArticleStatusBadge } from '../../../components/admin/article-status-badge';
 import { SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
 import { MdOutlineArticle } from 'react-icons/md';
 import { TbStatusChange } from 'react-icons/tb';
-import { fetchArticles } from '../../../../services/articles';
+import { fetchArticles } from '../../../services/articles';
 
 interface Article {
   _id?: string;
@@ -93,7 +93,7 @@ export default function ArticlesPage() {
             focus:ring-[#2B4A75]/40
             cursor-pointer
           "
-          onClick={() => router.push('/admin/articles/list/new')}
+          onClick={() => router.push('/admin/articles/new')}
         >
           + New Article
         </button>

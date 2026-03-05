@@ -21,7 +21,7 @@ const navItems = [
     children: [
       {
         name: 'List',
-        href: '/admin/articles/list',
+        href: '/admin/articles',
       },
       {
         name: 'Categories',
