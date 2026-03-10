@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { FaYoutube, FaImage, FaVideo } from 'react-icons/fa';
 import Popup from '@/components/ui/popup';
+import { uploadImage } from '@/services/media';
 
 type BlockAction = {
   id: string;
@@ -79,7 +80,7 @@ const BlockMenu = ({ editor }: { editor: any }) => {
       // Reset the input value to allow selecting the same file again
       fileInputRef.current.value = '';
 
-      const handleChange = (e: Event) => {
+      const handleChange = async (e: Event) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) {
           reject(new Error('No file selected'));
@@ -91,13 +92,18 @@ const BlockMenu = ({ editor }: { editor: any }) => {
           return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const url = event.target?.result as string;
-          resolve(url);
-        };
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
+        try {
+          // Upload to S3
+          const uploadResult = await uploadImage(file);
+
+          if (uploadResult.success && uploadResult.imageUrl) {
+            resolve(uploadResult.imageUrl);
+          } else {
+            reject(new Error(uploadResult.message || 'Failed to upload image'));
+          }
+        } catch (error: any) {
+          reject(new Error(error.message || 'Failed to upload image'));
+        }
       };
 
       const handleCancel = () => {
@@ -125,7 +131,7 @@ const BlockMenu = ({ editor }: { editor: any }) => {
       // Reset the input value to allow selecting the same file again
       videoInputRef.current.value = '';
 
-      const handleChange = (e: Event) => {
+      const handleChange = async (e: Event) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) {
           reject(new Error('No file selected'));
@@ -137,13 +143,18 @@ const BlockMenu = ({ editor }: { editor: any }) => {
           return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const url = event.target?.result as string;
-          resolve(url);
-        };
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
+        try {
+          // Upload to S3
+          const uploadResult = await uploadImage(file);
+
+          if (uploadResult.success && uploadResult.imageUrl) {
+            resolve(uploadResult.imageUrl);
+          } else {
+            reject(new Error(uploadResult.message || 'Failed to upload video'));
+          }
+        } catch (error: any) {
+          reject(new Error(error.message || 'Failed to upload video'));
+        }
       };
 
       const handleCancel = () => {
