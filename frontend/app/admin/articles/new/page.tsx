@@ -1,4 +1,4 @@
-import CreateArticleForm from './create-article-form';
+import ArticleForm from '@/components/article/article-form';
 
 export default function NewArticlePage() {
   return (
@@ -7,7 +7,7 @@ export default function NewArticlePage() {
         <h1 className="text-2xl font-semibold text-slate-900">New Article</h1>
       </div>
 
-      <CreateArticleForm />
+      <ArticleForm mode="create" />
     </div>
   );
 }

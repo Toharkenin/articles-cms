@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import InputEditable from '@/components/ui/input-editable';
 import ArticleEditor from '@/components/article/editor';
 import { saveArticle, getCategories } from '@/services/articles';
@@ -9,6 +9,7 @@ import { useAutoSave } from '@/hooks/auto-save';
 import SaveStatus from '@/components/article/auto-save-status';
 
 type ArticleStatus = 'draft' | 'published';
+type Mode = 'create' | 'edit';
 
 type Category = {
   id: number;
@@ -29,9 +30,34 @@ function slugify(input: string) {
     .replace(/-+/g, '-');
 }
 
-export default function CreateArticleForm() {
+type InitialArticle = Partial<{
+  articleId: string;
+  title: string;
+  slug: string;
+  category: Category | null;
+  isFeatured: boolean;
+  createdAt: Date;
+  contentJson: any;
+  contentHtml: string;
+  featuredImage: string; // url
+}>;
+
+type ArticleFormProps = {
+  mode: Mode;
+  initial?: InitialArticle;
+  articleIdFromRoute?: string;
+  redirectAfterPublish?: (articleId: string) => string;
+  cancelHref?: string;
+};
+
+export default function ArticleForm({
+  mode,
+  initial,
+  articleIdFromRoute,
+  redirectAfterPublish,
+  cancelHref,
+}: ArticleFormProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const isSubmittingRef = useRef(false);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,8 +75,7 @@ export default function CreateArticleForm() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [didRestore, setDidRestore] = useState(false);
-  const [createdAt] = useState(new Date());
+  const [createdAt, setCreatedAt] = useState(new Date());
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -109,83 +134,53 @@ export default function CreateArticleForm() {
   }, []);
 
   useEffect(() => {
-    // Look for the most recent draft in localStorage
-    let savedData = null;
+    console.log('Form useEffect triggered. Mode:', mode, 'Initial exists:', !!initial);
 
-    try {
-      // Check for draft-new first (new articles)
-      const newDraft = localStorage.getItem('draft-new');
-      if (newDraft) {
-        const parsed = JSON.parse(newDraft);
-        savedData = parsed;
+    if (initial && mode === 'edit') {
+      console.log('Populating form with initial data:', initial);
 
-        // If this draft already has an articleId from backend, check the specific draft
-        if (parsed.articleId) {
-          const specificDraft = localStorage.getItem(`draft-${parsed.articleId}`);
-          if (specificDraft) {
-            savedData = JSON.parse(specificDraft);
-          }
-        }
-      } else {
-        // If no draft-new, scan localStorage for any draft-* keys (in case page was refreshed after articleId received)
-        const allKeys = Object.keys(localStorage);
-        const draftKeys = allKeys.filter((key) => key.startsWith('draft-') && key !== 'draft-new');
+      const newArticleId = initial.articleId || articleIdFromRoute;
+      const newTitle = initial.title || '';
+      const newSlug = initial.slug || '';
+      const newCategory = initial.category || null;
+      const newIsFeatured = initial.isFeatured || false;
+      const newContentJson = initial.contentJson || null;
+      const newContentHtml = initial.contentHtml || '';
+      const newFeaturedImage = initial.featuredImage || '';
 
-        if (draftKeys.length > 0) {
-          // Use the first draft found (there should typically only be one for new articles)
-          const draftContent = localStorage.getItem(draftKeys[0]);
-          if (draftContent) {
-            savedData = JSON.parse(draftContent);
-          }
-        }
+      console.log('Setting values:', {
+        articleId: newArticleId,
+        title: newTitle,
+        slug: newSlug,
+        category: newCategory,
+        isFeatured: newIsFeatured,
+        contentHtml: newContentHtml ? 'has content' : 'empty',
+        featuredImage: newFeaturedImage,
+      });
+
+      setArticleId(newArticleId);
+      setTitle(newTitle);
+      setSlug(newSlug);
+      setCategory(newCategory);
+      setIsFeatured(newIsFeatured);
+      setContentJson(newContentJson);
+      setContentHtml(newContentHtml);
+      setFeaturedImageUrl(newFeaturedImage);
+
+      if (initial.createdAt) {
+        setCreatedAt(new Date(initial.createdAt));
       }
-    } catch (err) {
-      console.error('Failed to parse draft:', err);
+
+      console.log('Form populated successfully');
     }
+  }, [initial, mode, articleIdFromRoute]);
 
-    if (savedData) {
-      try {
-        if (savedData.articleId) setArticleId(savedData.articleId);
-        if (savedData.title) setTitle(savedData.title);
-        if (savedData.slug) setSlug(savedData.slug);
-        if (savedData.category) setCategory(savedData.category);
-        if (savedData.isFeatured) setIsFeatured(savedData.isFeatured);
-        if (savedData.contentJson) setContentJson(savedData.contentJson);
-        if (savedData.contentHtml) setContentHtml(savedData.contentHtml);
-        if (savedData.featuredImage) setFeaturedImageUrl(savedData.featuredImage);
-      } catch (err) {
-        console.error('Failed to restore draft:', err);
-      }
-    }
-
-    setDidRestore(true);
-  }, []);
-
-  const {
-    lastSavedAt,
-    isSaving: isSavingDraft,
-    storageKey,
-  } = useAutoSave({
+  const { lastSavedAt, isSaving: isSavingDraft } = useAutoSave({
     articleId,
-    content: didRestore ? draftData : null,
+    content: draftData,
     onArticleIdReceived: (id) => setArticleId(id),
   });
 
-  // Clean up drafts when navigating away (but not when submitting)
-  useEffect(() => {
-    return () => {
-      // Only clean up if not navigating due to form submission
-      if (!isSubmittingRef.current) {
-        // Remove both draft-new and draft-{articleId} if they exist
-        localStorage.removeItem('draft-new');
-        if (articleId) {
-          localStorage.removeItem(`draft-${articleId}`);
-        }
-      }
-    };
-  }, [articleId]);
-
-  // Clean up blob URL on unmount
   useEffect(() => {
     return () => {
       if (featuredImageUrl && featuredImageUrl.startsWith('blob:')) {
@@ -197,12 +192,9 @@ export default function CreateArticleForm() {
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Only validate if we're publishing
     if (submitStatus === 'published') {
       setError(null);
-
       const finalSlug = (slug || autoSlug).trim();
-
       if (!title.trim()) return setError('Title is required.');
       if (!finalSlug) return setError('Slug is required.');
       if (!contentHtml?.trim()) return setError('Content is required.');
@@ -224,30 +216,22 @@ export default function CreateArticleForm() {
         ...(featuredImageUrl && { featuredImage: featuredImageUrl }),
       };
 
-      await saveArticle(payload);
+      const res = await saveArticle(payload);
 
-      // Only redirect and clear if publishing
+      if (res?.articleId && !articleId) {
+        setArticleId(res.articleId);
+      }
+
       if (submitStatus === 'published') {
-        // Show success toast
         setToastMessage('Article published successfully!');
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
-
-        // Clear local storage after successful submission
         isSubmittingRef.current = true;
-        if (storageKey) {
-          localStorage.removeItem(storageKey);
-        }
-        // Also remove draft-new if it exists
-        localStorage.removeItem('draft-new');
-
-        router.push('/admin/articles/list');
+        router.push('/admin/articles');
       } else {
-        // For draft, show toast and reset status
         setToastMessage('Draft saved successfully!');
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
-
         setSubmitStatus(null);
         setError(null);
       }
@@ -322,14 +306,6 @@ export default function CreateArticleForm() {
             <div className="flex items-center gap-2">
               {!featuredImage && !featuredImageUrl ? (
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50 hover:border-slate-400">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
                   Upload Image
                   <input
                     type="file"
@@ -345,112 +321,39 @@ export default function CreateArticleForm() {
                   />
                 </label>
               ) : (
-                <div className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5">
-                  <svg
-                    className="h-4 w-4 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-sm text-slate-700 max-w-[200px] truncate">
-                    {featuredImage?.name || 'featured-image.jpg'}
-                  </span>
-                  <div className="flex items-center gap-1 ml-1 border-l border-slate-300 pl-2">
+                <div className="flex items-center gap-3">
+                  {featuredImageUrl && (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (featuredImageUrl) {
-                          window.open(featuredImageUrl, '_blank');
-                        }
-                      }}
-                      className="p-1 rounded hover:bg-slate-200 transition"
-                      title="View image"
+                      onClick={() => window.open(featuredImageUrl, '_blank')}
+                      className="relative w-20 h-20 rounded-lg border border-slate-300 overflow-hidden hover:opacity-80 transition cursor-pointer"
+                      title="Click to view full image"
                     >
-                      <svg
-                        className="h-3.5 w-3.5 text-slate-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <label
-                      className="p-1 rounded hover:bg-slate-200 transition cursor-pointer"
-                      title="Replace image"
-                    >
-                      <svg
-                        className="h-3.5 w-3.5 text-slate-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            if (featuredImageUrl) {
-                              URL.revokeObjectURL(featuredImageUrl);
-                            }
-                            setFeaturedImage(file);
-                            setFeaturedImageUrl(URL.createObjectURL(file));
-                          }
-                        }}
+                      <img
+                        src={featuredImageUrl}
+                        alt="Featured"
+                        className="w-full h-full object-cover"
                       />
-                    </label>
+                    </button>
+                  )}
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5">
+                    <span className="text-sm text-slate-700 max-w-[200px] truncate">
+                      {featuredImage?.name ||
+                        featuredImageUrl?.split('/').pop() ||
+                        'featured-image'}
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
-                        if (featuredImageUrl) {
+                        if (featuredImageUrl && featuredImageUrl.startsWith('blob:')) {
                           URL.revokeObjectURL(featuredImageUrl);
                         }
                         setFeaturedImage(null);
                         setFeaturedImageUrl('');
                       }}
                       className="p-1 rounded hover:bg-slate-200 transition"
-                      title="Remove image"
                     >
-                      <svg
-                        className="h-3.5 w-3.5 text-slate-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
+                      ✕
                     </button>
                   </div>
                 </div>
@@ -460,15 +363,13 @@ export default function CreateArticleForm() {
 
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Content</label>
-            {didRestore && (
-              <ArticleEditor
-                initialContent={contentJson}
-                onChange={(json, html) => {
-                  setContentJson(json);
-                  setContentHtml(html);
-                }}
-              />
-            )}
+            <ArticleEditor
+              initialContent={contentJson}
+              onChange={(json, html) => {
+                setContentJson(json);
+                setContentHtml(html);
+              }}
+            />
           </div>
 
           {error && (
@@ -506,6 +407,7 @@ export default function CreateArticleForm() {
           </div>
         </div>
       </form>
+
       <SaveStatus lastSavedAt={lastSavedAt} isSaving={isSavingDraft} />
     </div>
   );
