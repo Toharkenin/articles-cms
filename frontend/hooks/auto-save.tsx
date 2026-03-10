@@ -1,7 +1,7 @@
 'use client';
 
 import { saveArticle } from '@/services/articles';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type AutoSaveProps = {
   articleId?: string;
@@ -16,13 +16,6 @@ export function useAutoSave({ articleId, content, onArticleIdReceived }: AutoSav
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSentHashRef = useRef<string>('');
 
-  const key = useMemo(() => `draft-${articleId || 'new'}`, [articleId]);
-
-  useEffect(() => {
-    if (content == null) return;
-    localStorage.setItem(key, JSON.stringify(content));
-  }, [content, key]);
-
   useEffect(() => {
     if (content == null) return;
 
@@ -36,6 +29,19 @@ export function useAutoSave({ articleId, content, onArticleIdReceived }: AutoSav
       contentHtml,
       featuredImage,
     } = content;
+
+    // Check if at least one field is filled
+    const hasContent =
+      title?.trim() ||
+      slug?.trim() ||
+      category !== null ||
+      contentHtml?.trim() ||
+      featuredImage;
+
+    if (!hasContent) {
+      console.log('Auto-save skipped: No content to save');
+      return;
+    }
 
     const payload = {
       articleId,
@@ -62,32 +68,21 @@ export function useAutoSave({ articleId, content, onArticleIdReceived }: AutoSav
         const res = await saveArticle(payload);
         lastSentHashRef.current = hash;
 
-        // Handle response structure: { success, message, article, articleId }
         if (res?.article?.updatedAt) setLastSavedAt(new Date(res.article.updatedAt));
 
         if (res?.articleId && !articleId && onArticleIdReceived) {
-          // Remove the old 'draft-new' entry
-          const oldKey = 'draft-new';
-          localStorage.removeItem(oldKey);
-
-          // Update the content with the new articleId and save to new key
-          const newKey = `draft-${res.articleId}`;
-          const updatedContent = { ...content, articleId: res.articleId };
-          localStorage.setItem(newKey, JSON.stringify(updatedContent));
-
-          // Notify the parent component about the new articleId
           onArticleIdReceived(res.articleId);
           console.log('Received new articleId from server:', res.articleId);
         }
       } finally {
         setIsSaving(false);
       }
-    }, 20000);
+    }, 10000);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [content, articleId, onArticleIdReceived]);
 
-  return { lastSavedAt, isSaving, storageKey: key };
+  return { lastSavedAt, isSaving };
 }
