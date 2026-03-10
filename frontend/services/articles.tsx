@@ -96,3 +96,21 @@ export const getArticleById = async (id: string): Promise<any> => {
     throw error;
   }
 };
+
+export const deleteDraftArticle = async (id: string): Promise<any> => {
+  try {
+    const response = await axiosInstance.delete(`/articles/delete-draft/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const changeArticleStatus = async (id: string): Promise<any> => {
+  try {
+    const response = await axiosInstance.post(`/articles/change-article-status/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

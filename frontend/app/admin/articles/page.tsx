@@ -5,9 +5,11 @@ import { ArticleStatusBadge } from '../../../components/admin/article-status-bad
 import { SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
-import { MdOutlineArticle } from 'react-icons/md';
+import { MdDeleteOutline, MdOutlineArticle } from 'react-icons/md';
 import { TbStatusChange } from 'react-icons/tb';
-import { fetchArticles } from '../../../services/articles';
+import { deleteDraftArticle, fetchArticles, changeArticleStatus } from '../../../services/articles';
+import { SuccessPopup } from '@/components/ui/success-popup';
+import { RiInboxUnarchiveLine, RiInboxArchiveLine } from 'react-icons/ri';
 
 interface Article {
   _id?: string;
@@ -27,6 +29,10 @@ export default function ArticlesPage() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
+  const [showStatusChangePopup, setShowStatusChangePopup] = useState<boolean>(false);
+  const [statusChangeMessage, setStatusChangeMessage] = useState<string>('');
+  const [deleteArticleId, setDeleteArticleId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -73,6 +79,49 @@ export default function ArticlesPage() {
       </div>
     );
   }
+
+  const deleteDraft = async (id: string) => {
+    try {
+      await deleteDraftArticle(id);
+      setShowDeletePopup(true);
+      setDeleteArticleId(id);
+      setArticles((prev) => prev.filter((article) => article._id !== id));
+    } catch (error) {
+      console.error('Failed to delete draft article:', error);
+    }
+  };
+
+  const archiveArticle = async (id: string) => {
+    try {
+      await changeArticleStatus(id);
+      setArticles((prev) =>
+        prev.map((article) =>
+          article._id === id ? { ...article, status: 'archive' as const } : article
+        )
+      );
+      setStatusChangeMessage('Article archived successfully!');
+      setShowStatusChangePopup(true);
+      setOpenMenuId(null);
+    } catch (error) {
+      console.error('Failed to archive article:', error);
+    }
+  };
+
+  const unarchiveArticle = async (id: string) => {
+    try {
+      await changeArticleStatus(id);
+      setArticles((prev) =>
+        prev.map((article) =>
+          article._id === id ? { ...article, status: 'published' as const } : article
+        )
+      );
+      setStatusChangeMessage('Article unarchived successfully!');
+      setShowStatusChangePopup(true);
+      setOpenMenuId(null);
+    } catch (error) {
+      console.error('Failed to unarchive article:', error);
+    }
+  };
 
   return (
     <div className="px-6 py-8 mx-auto">
@@ -165,21 +214,38 @@ export default function ArticlesPage() {
                       <button
                         className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                         onClick={() => {
-                          /* TODO: handle preview */ setOpenMenuId(null);
+                          router.push(`/admin/articles/${article._id}/edit`);
+                          setOpenMenuId(null);
                         }}
                       >
                         <MdOutlineArticle size={16} className="inline-block mr-2" />
                         Edit
                       </button>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                        onClick={() => {
-                          /* TODO: handle change status */ setOpenMenuId(null);
-                        }}
-                      >
-                        <TbStatusChange size={16} className="inline-block mr-2" />
-                        Change Status
-                      </button>
+                      {article.status === 'published' ? (
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          onClick={() => archiveArticle(article._id!)}
+                        >
+                          <RiInboxArchiveLine size={16} className="inline-block mr-2" />
+                          Archive
+                        </button>
+                      ) : article.status === 'archive' ? (
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          onClick={() => unarchiveArticle(article._id!)}
+                        >
+                          <RiInboxUnarchiveLine size={16} className="inline-block mr-2" />
+                          Unarchive
+                        </button>
+                      ) : (
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          onClick={() => deleteDraft(article._id!)}
+                        >
+                          <MdDeleteOutline size={16} className="inline-block mr-2" />
+                          Delete
+                        </button>
+                      )}
                     </div>
                   )}
                 </td>
@@ -188,6 +254,20 @@ export default function ArticlesPage() {
           </tbody>
         </table>
       </div>
+
+      <SuccessPopup
+        open={showDeletePopup}
+        onClose={() => setShowDeletePopup(false)}
+        title="Draft Deleted!"
+        description="The draft article has been successfully deleted."
+      />
+      
+      <SuccessPopup
+        open={showStatusChangePopup}
+        onClose={() => setShowStatusChangePopup(false)}
+        title="Status Updated!"
+        description={statusChangeMessage}
+      />
     </div>
   );
 }
