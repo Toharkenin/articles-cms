@@ -136,4 +136,26 @@ export class Article {
       };
     }
   }
+
+  async getArticleById(id: string) {
+    try {
+      const article = await ArticleModel.findById(id).populate('category');
+      if (!article) {
+        return {
+          success: false,
+          message: 'Article not found',
+        };
+      }
+      return {
+        success: true,
+        data: article,
+      };
+    } catch (error) {
+      console.error('Get article by ID error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching article',
+      };
+    }
+  }
 }
