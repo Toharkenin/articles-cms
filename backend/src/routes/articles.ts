@@ -135,7 +135,24 @@ router.get('/get-articles', requireAdminAuth, async (req, res) => {
     const getArticles = await new Article().getArticles();
     res.json({ success: true, articles: getArticles });
   } catch (error) {
-    console.error('Create article error:', error);
+    console.error('Get articles error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.get('/get-article/:id', requireAdminAuth, async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const article = await new Article().getArticleById(id);
+    if (!article) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Get article error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
