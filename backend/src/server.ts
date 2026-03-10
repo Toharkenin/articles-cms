@@ -4,6 +4,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import authRouter from './routes/auth';
 import articlesRouter from './routes/articles';
+import mediaRouter from './routes/media';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Mount routes
 app.use('/api/auth', authRouter);
 app.use('/api/articles', articlesRouter);
+app.use('/api/media', mediaRouter);
 
 app.get('/health', (req, res) => {
   res.json({ ok: true });
