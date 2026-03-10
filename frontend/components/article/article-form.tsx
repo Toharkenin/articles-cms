@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import InputEditable from '@/components/ui/input-editable';
 import ArticleEditor from '@/components/article/editor';
 import { saveArticle, getCategories } from '@/services/articles';
+import { uploadImage } from '@/services/media';
 import { useAutoSave } from '@/hooks/auto-save';
 import SaveStatus from '@/components/article/auto-save-status';
 
@@ -70,14 +71,15 @@ export default function ArticleForm({
 
   const [contentJson, setContentJson] = useState<any>(null);
   const [contentHtml, setContentHtml] = useState<string>('');
-  const [featuredImage, setFeaturedImage] = useState<File | null>(null);
   const [featuredImageUrl, setFeaturedImageUrl] = useState<string>('');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState(new Date());
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const autoSlug = useMemo(() => slugify(title), [title]);
 
@@ -181,14 +183,6 @@ export default function ArticleForm({
     onArticleIdReceived: (id) => setArticleId(id),
   });
 
-  useEffect(() => {
-    return () => {
-      if (featuredImageUrl && featuredImageUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(featuredImageUrl);
-      }
-    };
-  }, [featuredImageUrl]);
-
   const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -202,6 +196,7 @@ export default function ArticleForm({
 
     try {
       setIsSaving(true);
+      setError(null);
 
       const payload = {
         articleId,
@@ -304,18 +299,37 @@ export default function ArticleForm({
             </label>
 
             <div className="flex items-center gap-2">
-              {!featuredImage && !featuredImageUrl ? (
+              {!featuredImageUrl ? (
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-50 hover:border-slate-400">
-                  Upload Image
+                  {isUploading ? 'Uploading...' : 'Upload Image'}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
+                    disabled={isUploading}
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        setFeaturedImage(file);
-                        setFeaturedImageUrl(URL.createObjectURL(file));
+                        try {
+                          setIsUploading(true);
+                          setError(null);
+                          console.log('Uploading file:', file.name);
+                          const uploadResult = await uploadImage(file);
+                          console.log('Full upload result:', uploadResult);
+
+                          if (uploadResult.success && uploadResult.imageUrl) {
+                            console.log('Setting image URL to:', uploadResult.imageUrl);
+                            setFeaturedImageUrl(uploadResult.imageUrl);
+                          } else {
+                            console.error('Upload failed:', uploadResult);
+                            setError(uploadResult.message || 'Failed to upload image');
+                          }
+                        } catch (err: any) {
+                          console.error('Upload error:', err);
+                          setError(err.message || 'Failed to upload image');
+                        } finally {
+                          setIsUploading(false);
+                        }
                       }
                     }}
                   />
@@ -325,9 +339,9 @@ export default function ArticleForm({
                   {featuredImageUrl && (
                     <button
                       type="button"
-                      onClick={() => window.open(featuredImageUrl, '_blank')}
+                      onClick={() => setShowImageModal(true)}
                       className="relative w-20 h-20 rounded-lg border border-slate-300 overflow-hidden hover:opacity-80 transition cursor-pointer"
-                      title="Click to view full image"
+                      title="Click to view full size"
                     >
                       <img
                         src={featuredImageUrl}
@@ -338,19 +352,11 @@ export default function ArticleForm({
                   )}
                   <div className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5">
                     <span className="text-sm text-slate-700 max-w-[200px] truncate">
-                      {featuredImage?.name ||
-                        featuredImageUrl?.split('/').pop() ||
-                        'featured-image'}
+                      {featuredImageUrl?.split('/').pop() || 'featured-image'}
                     </span>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (featuredImageUrl && featuredImageUrl.startsWith('blob:')) {
-                          URL.revokeObjectURL(featuredImageUrl);
-                        }
-                        setFeaturedImage(null);
-                        setFeaturedImageUrl('');
-                      }}
+                      onClick={() => setFeaturedImageUrl('')}
                       className="p-1 rounded hover:bg-slate-200 transition"
                     >
                       ✕
@@ -393,7 +399,7 @@ export default function ArticleForm({
               onClick={() => setSubmitStatus('draft')}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Save Draft
+              {isSaving ? 'Saving...' : 'Save Draft'}
             </button>
 
             <button
@@ -409,6 +415,29 @@ export default function ArticleForm({
       </form>
 
       <SaveStatus lastSavedAt={lastSavedAt} isSaving={isSavingDraft} />
+
+      {/* Image Preview Modal */}
+      {showImageModal && featuredImageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute -top-10 right-0 text-white text-3xl hover:text-gray-300"
+            >
+              ✕
+            </button>
+            <img
+              src={featuredImageUrl}
+              alt="Featured Image Preview"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
