@@ -87,3 +87,12 @@ export const fetchArticles = async (): Promise<any> => {
     throw error;
   }
 };
+
+export const getArticleById = async (id: string): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/articles/get-article/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
