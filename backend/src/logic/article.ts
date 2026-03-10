@@ -158,4 +158,41 @@ export class Article {
       };
     }
   }
+
+  async changeArticleStatus(id: string) {
+    try {
+      const article = await ArticleModel.findById(id);
+      if (!article) {
+        return {
+          success: false,
+          message: 'Article not found',
+        };
+      }
+
+      if (article.status === 'published') {
+        article.status = 'archived';
+      } else if (article.status === 'archived') {
+        article.status = 'published';
+      } else {
+        return {
+          success: false,
+          message: 'Only published or archived articles can have their status changed this way',
+        };
+      }
+
+      await article.save();
+
+      return {
+        success: true,
+        message: `Article status changed to ${article.status}`,
+        data: article,
+      };
+    } catch (error) {
+      console.error('Change article status error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while changing article status',
+      };
+    }
+  }
 }

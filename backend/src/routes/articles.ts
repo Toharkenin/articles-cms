@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import CategoryModel from '../models/categories';
+import ArticleModel from '../models/article';
 import { Article } from '../logic/article';
 import { requireAdminAuth } from '../middleware/admin-auth';
 
@@ -153,6 +154,41 @@ router.get('/get-article/:id', requireAdminAuth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
+
+router.delete('/delete-draft/:id', requireAdminAuth, async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const article = await ArticleModel.findById(id);
+    if (!article) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+    if (article.status !== 'draft') {
+      return res
+        .status(403)
+        .json({ success: false, message: 'Only draft articles can be deleted' });
+    }
+    await ArticleModel.findByIdAndDelete(id);
+    res.json({ success: true, message: 'Article deleted successfully' });
+  } catch (error) {
+    console.error('Delete article error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.post('/change-article-status/:id', requireAdminAuth, async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    const result = await new Article().changeArticleStatus(id);
+
+    if (!result || !result.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: result?.message || 'Failed to change article status' });
+    }
+
+    res.json({ success: true, message: result.message, article: result.data });
+  } catch (error) {
+    console.error('Change article status error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
