@@ -30,8 +30,8 @@ const navItems = [
     ],
   },
   {
-    name: 'Admins',
-    href: '/admin/admins',
+    name: 'Authors',
+    href: '/admin/authors',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
@@ -64,7 +64,7 @@ export default function Sidebar() {
   const [articlesOpen, setArticlesOpen] = useState(false);
 
   return (
-    <aside className="w-64 bg-[#F3F6F9] border-r border-blue-100/60 min-h-screen flex flex-col">
+    <aside className="w-64 bg-[#F7F9FC] border-r border-gray-200 min-h-screen flex flex-col">
       <nav className="flex-1 p-4 pt-6">
         <div className="space-y-2">
           {navItems.map((item) => {
@@ -79,8 +79,8 @@ export default function Sidebar() {
                     group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full transition-all duration-200
                     ${
                       isDropdownActive
-                        ? 'bg-gradient-to-r from-[#EAF3FF] to-[#F4F9FF] text-[#2B60EA] shadow-sm ring-1 ring-blue-200/50'
-                        : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#2B60EA]'
+                        ? 'bg-white text-[#1D3557] shadow-sm ring-1 ring-gray-200'
+                        : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#1D3557]'
                     }
                   `}
                     onClick={() => setArticlesOpen((open) => !open)}
@@ -88,7 +88,7 @@ export default function Sidebar() {
                     <span
                       className={`
                       transition-colors
-                      ${isDropdownActive ? 'text-[#2B60EA]' : 'text-gray-400 group-hover:text-[#2B60EA]'}
+                      ${isDropdownActive ? 'text-[#457B9D]' : 'text-gray-400 group-hover:text-[#457B9D]'}
                     `}
                     >
                       {item.icon}
@@ -99,8 +99,8 @@ export default function Sidebar() {
                     <svg
                       className={`ml-auto w-4 h-4 transition-transform duration-200 ${
                         articlesOpen
-                          ? 'rotate-90 text-[#2B60EA]'
-                          : 'text-gray-400 group-hover:text-[#2B60EA]'
+                          ? 'rotate-90 text-[#457B9D]'
+                          : 'text-gray-400 group-hover:text-[#457B9D]'
                       }`}
                       fill="none"
                       stroke="currentColor"
@@ -121,7 +121,7 @@ export default function Sidebar() {
                     ${articlesOpen ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}
                   `}
                   >
-                    <div className="ml-6 space-y-1 border-l border-blue-100 pl-4">
+                    <div className="ml-6 space-y-1 border-l border-gray-200 pl-4">
                       {item.children?.map((child) => {
                         const isActive = pathname === child.href;
 
@@ -133,8 +133,8 @@ export default function Sidebar() {
                             block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
                             ${
                               isActive
-                                ? 'bg-[#2B60EA]/10 text-[#2B60EA] shadow-sm'
-                                : 'text-gray-500 hover:bg-white hover:text-[#2B60EA]'
+                                ? 'bg-[#457B9D]/10 text-[#1D3557]'
+                                : 'text-gray-500 hover:bg-white hover:text-[#1D3557]'
                             }
                           `}
                           >
@@ -159,15 +159,15 @@ export default function Sidebar() {
                   group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
                   ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#EAF3FF] to-[#F4F9FF] text-[#2B60EA] shadow-sm ring-1 ring-blue-200/50'
-                      : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#2B60EA]'
+                      ? 'bg-white text-[#1D3557] shadow-sm ring-1 ring-gray-200'
+                      : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-[#1D3557]'
                   }
                 `}
                 >
                   <span
                     className={`
                     transition-colors
-                    ${isActive ? 'text-[#2B60EA]' : 'text-gray-400 group-hover:text-[#2B60EA]'}
+                    ${isActive ? 'text-[#457B9D]' : 'text-gray-400 group-hover:text-[#457B9D]'}
                   `}
                   >
                     {item.icon}
