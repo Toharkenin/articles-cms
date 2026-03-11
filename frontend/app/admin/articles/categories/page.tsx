@@ -2,6 +2,7 @@
 
 import { StatusBadge } from '@/components/admin/status-badge';
 import NewCategoryPopup from '@/components/article/new-category-popup';
+import { Button } from '@/components/ui/button';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { changeCategoryStatus, getCategories } from '@/services/articles';
 import { SlidersHorizontal } from 'lucide-react';
@@ -99,25 +100,7 @@ export default function CategoriesPage() {
     <div className="w-[90%] mx-auto py-10">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Categories</h1>
-        <button
-          className="
-            px-4 py-2
-            bg-gradient-to-br
-            from-[#2B4A75]
-            to-[#3A5C88]
-            text-white
-            rounded-lg
-            transition-all duration-200
-            hover:brightness-110
-            focus:outline-none
-            focus:ring-2
-            focus:ring-[#2B4A75]/40
-            cursor-pointer
-          "
-          onClick={() => setIsNewCategoryOpen(true)}
-        >
-          + New Category
-        </button>
+        <Button onClick={() => setIsNewCategoryOpen(true)}>+ New Category</Button>
       </div>
       <div className="rounded-2xl border border-blue-100/60 shadow-sm bg-white overflow-visible">
         <table className="w-full">
