@@ -10,6 +10,7 @@ import { TbStatusChange } from 'react-icons/tb';
 import { deleteDraftArticle, fetchArticles, changeArticleStatus } from '../../../services/articles';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { RiInboxUnarchiveLine, RiInboxArchiveLine } from 'react-icons/ri';
+import { Button } from '@/components/ui/button';
 
 interface Article {
   _id?: string;
@@ -127,25 +128,7 @@ export default function ArticlesPage() {
     <div className="px-6 py-8 mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Articles</h1>
-        <button
-          className="
-            px-4 py-2
-            bg-gradient-to-br
-            from-[#2B4A75]
-            to-[#3A5C88]
-            text-white
-            rounded-lg
-            transition-all duration-200
-            hover:brightness-110
-            focus:outline-none
-            focus:ring-2
-            focus:ring-[#2B4A75]/40
-            cursor-pointer
-          "
-          onClick={() => router.push('/admin/articles/new')}
-        >
-          + New Article
-        </button>
+        <Button onClick={() => router.push('/admin/articles/new')}>+ New Article</Button>
       </div>
 
       {/* Stats */}
@@ -180,7 +163,14 @@ export default function ArticlesPage() {
                 className="border-t hover:bg-gray-50 transition"
               >
                 <td className="px-6 py-4 font-medium text-blue-600">{article.id || index + 1}</td>
-                <td className="px-6 py-4 font-semibold">{article.title || 'Untitled'}</td>
+                <td className="px-6 py-4 font-semibold">
+                  <button
+                    onClick={() => router.push(`/admin/articles/${article._id}/view`)}
+                    className="hover:text-blue-600 hover:underline cursor-pointer text-left"
+                  >
+                    {article.title || 'Untitled'}
+                  </button>
+                </td>
                 <td className="px-6 py-4">{article.slug || '-'}</td>
                 <td className="px-6 py-4">{article.author || 'Unknown'}</td>
                 <td className="px-6 py-4">{article.category?.name || 'N/A'}</td>
@@ -205,7 +195,8 @@ export default function ArticlesPage() {
                       <button
                         className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                         onClick={() => {
-                          /* TODO: handle view */ setOpenMenuId(null);
+                          router.push(`/admin/articles/${article._id}/view`);
+                          setOpenMenuId(null);
                         }}
                       >
                         <GrView size={16} className="inline-block mr-2" />
@@ -261,7 +252,7 @@ export default function ArticlesPage() {
         title="Draft Deleted!"
         description="The draft article has been successfully deleted."
       />
-      
+
       <SuccessPopup
         open={showStatusChangePopup}
         onClose={() => setShowStatusChangePopup(false)}
