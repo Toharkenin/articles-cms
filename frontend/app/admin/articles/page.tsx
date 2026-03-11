@@ -2,15 +2,14 @@
 import { useState, useEffect } from 'react';
 import { StatsCard } from '../../../components/admin/states-card';
 import { ArticleStatusBadge } from '../../../components/admin/article-status-badge';
-import { SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
 import { MdDeleteOutline, MdOutlineArticle } from 'react-icons/md';
-import { TbStatusChange } from 'react-icons/tb';
 import { deleteDraftArticle, fetchArticles, changeArticleStatus } from '../../../services/articles';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { RiInboxUnarchiveLine, RiInboxArchiveLine } from 'react-icons/ri';
 import { Button } from '@/components/ui/button';
+import { Table, TableColumn, TableAction } from '@/components/admin/table';
 
 interface Article {
   _id?: string;
@@ -27,7 +26,6 @@ interface Article {
 }
 
 export default function ArticlesPage() {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showDeletePopup, setShowDeletePopup] = useState<boolean>(false);
@@ -102,7 +100,6 @@ export default function ArticlesPage() {
       );
       setStatusChangeMessage('Article archived successfully!');
       setShowStatusChangePopup(true);
-      setOpenMenuId(null);
     } catch (error) {
       console.error('Failed to archive article:', error);
     }
@@ -118,11 +115,109 @@ export default function ArticlesPage() {
       );
       setStatusChangeMessage('Article unarchived successfully!');
       setShowStatusChangePopup(true);
-      setOpenMenuId(null);
     } catch (error) {
       console.error('Failed to unarchive article:', error);
     }
   };
+
+  // Define table columns
+  const columns: TableColumn<Article>[] = [
+    {
+      key: 'id',
+      label: 'ID',
+      render: (article, index) => (
+        <span className="font-medium text-blue-600">{article.id || index + 1}</span>
+      ),
+    },
+    {
+      key: 'title',
+      label: 'Title',
+      render: (article) => (
+        <button
+          onClick={() => router.push(`/admin/articles/${article._id}/view`)}
+          className="hover:text-blue-600 hover:underline cursor-pointer text-left font-semibold"
+        >
+          {article.title || 'Untitled'}
+        </button>
+      ),
+    },
+    {
+      key: 'slug',
+      label: 'Slug',
+    },
+    {
+      key: 'author',
+      label: 'Author',
+      render: (article) => <span>{article.author || 'Unknown'}</span>,
+    },
+    {
+      key: 'category',
+      label: 'Category',
+      render: (article) => <span>{article.category?.name || 'N/A'}</span>,
+    },
+    {
+      key: 'isFeatured',
+      label: 'Featured',
+      render: (article) => <span>{article.isFeatured ? 'Yes' : 'No'}</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (article) => <ArticleStatusBadge status={article.status} />,
+    },
+    {
+      key: 'createdAt',
+      label: 'Created At',
+      render: (article) => (
+        <span className="text-gray-500">
+          {article.createdAt ? new Date(article.createdAt).toDateString() : 'N/A'}
+        </span>
+      ),
+    },
+  ];
+
+  // Define table actions
+  const actions: TableAction<Article>[] = [
+    {
+      label: 'View',
+      icon: <GrView size={16} />,
+      onClick: (article) => {
+        router.push(`/admin/articles/${article._id}/view`);
+      },
+    },
+    {
+      label: 'Edit',
+      icon: <MdOutlineArticle size={16} />,
+      onClick: (article) => {
+        router.push(`/admin/articles/${article._id}/edit`);
+      },
+    },
+    {
+      label: 'Archive',
+      icon: <RiInboxArchiveLine size={16} />,
+      onClick: (article) => {
+        archiveArticle(article._id!);
+      },
+      condition: (article) => article.status === 'published',
+    },
+    {
+      label: 'Unarchive',
+      icon: <RiInboxUnarchiveLine size={16} />,
+      onClick: (article) => {
+        unarchiveArticle(article._id!);
+      },
+      condition: (article) => article.status === 'archive',
+    },
+    {
+      label: 'Delete',
+      icon: <MdDeleteOutline size={16} />,
+      onClick: (article) => {
+        deleteDraft(article._id!);
+      },
+      className: 'text-red-600 hover:bg-red-50',
+      condition: (article) => article.status === 'draft',
+    },
+  ];
 
   return (
     <div className="px-6 py-8 mx-auto">
@@ -140,111 +235,13 @@ export default function ArticlesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow-md">
-        <table className="min-w-[1100px] w-full text-sm">
-          <thead className="bg-gray-200 text-gray-700 uppercase text-xs tracking-wider">
-            <tr>
-              <th className="px-6 py-4 text-left">ID</th>
-              <th className="px-6 py-4 text-left">Title</th>
-              <th className="px-6 py-4 text-left">Slug</th>
-              <th className="px-6 py-4 text-left">Author</th>
-              <th className="px-6 py-4 text-left">Category</th>
-              <th className="px-6 py-4 text-left">Featured</th>
-              <th className="px-6 py-4 text-left">Status</th>
-              <th className="px-6 py-4 text-left">Created At</th>
-              <th className="px-6 py-4 text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {articles.map((article, index) => (
-              <tr
-                key={article._id || article.id || index}
-                className="border-t hover:bg-gray-50 transition"
-              >
-                <td className="px-6 py-4 font-medium text-blue-600">{article.id || index + 1}</td>
-                <td className="px-6 py-4 font-semibold">
-                  <button
-                    onClick={() => router.push(`/admin/articles/${article._id}/view`)}
-                    className="hover:text-blue-600 hover:underline cursor-pointer text-left"
-                  >
-                    {article.title || 'Untitled'}
-                  </button>
-                </td>
-                <td className="px-6 py-4">{article.slug || '-'}</td>
-                <td className="px-6 py-4">{article.author || 'Unknown'}</td>
-                <td className="px-6 py-4">{article.category?.name || 'N/A'}</td>
-                <td className="px-6 py-4">{article.isFeatured ? 'Yes' : 'No'}</td>
-                <td className="px-6 py-4">
-                  <ArticleStatusBadge status={article.status} />
-                </td>
-                <td className="px-6 py-4 text-gray-500">
-                  {article.createdAt ? new Date(article.createdAt).toDateString() : 'N/A'}
-                </td>
-                <td className="px-6 py-4 relative">
-                  <button
-                    type="button"
-                    className="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    title="More actions"
-                    onClick={() => setOpenMenuId(openMenuId === article.id ? null : article.id)}
-                  >
-                    <SlidersHorizontal className="w-5 h-5 text-gray-600" />
-                  </button>
-                  {openMenuId === article.id && (
-                    <div className="menu-dropdown absolute right-0 mt-3 w-44 bg-white border border-blue-100 rounded-2xl shadow-xl py-2 z-20 animate-in fade-in zoom-in-95 duration-150">
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                        onClick={() => {
-                          router.push(`/admin/articles/${article._id}/view`);
-                          setOpenMenuId(null);
-                        }}
-                      >
-                        <GrView size={16} className="inline-block mr-2" />
-                        View
-                      </button>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                        onClick={() => {
-                          router.push(`/admin/articles/${article._id}/edit`);
-                          setOpenMenuId(null);
-                        }}
-                      >
-                        <MdOutlineArticle size={16} className="inline-block mr-2" />
-                        Edit
-                      </button>
-                      {article.status === 'published' ? (
-                        <button
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                          onClick={() => archiveArticle(article._id!)}
-                        >
-                          <RiInboxArchiveLine size={16} className="inline-block mr-2" />
-                          Archive
-                        </button>
-                      ) : article.status === 'archive' ? (
-                        <button
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                          onClick={() => unarchiveArticle(article._id!)}
-                        >
-                          <RiInboxUnarchiveLine size={16} className="inline-block mr-2" />
-                          Unarchive
-                        </button>
-                      ) : (
-                        <button
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                          onClick={() => deleteDraft(article._id!)}
-                        >
-                          <MdDeleteOutline size={16} className="inline-block mr-2" />
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        columns={columns}
+        data={articles}
+        actions={actions}
+        getRowKey={(article, index) => article._id || article.id || index}
+        emptyMessage="No articles available"
+      />
 
       <SuccessPopup
         open={showDeletePopup}
