@@ -162,6 +162,28 @@ class Auth {
   async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
+
+  async getAdmins() {
+    try {
+      const admins = await AdminModel.find();
+      return {
+        success: true,
+        admins: admins.map((admin) => ({
+          id: admin._id.toString(),
+          email: admin.email,
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          role: admin.role,
+        })),
+      };
+    } catch (error) {
+      console.error('Get admins error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching admins',
+      };
+    }
+  }
 }
 
 export default Auth;

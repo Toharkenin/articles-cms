@@ -140,4 +140,16 @@ router.get('/get-admin', requireAdminAuth, async (req, res) => {
   }
 });
 
+router.get('/get-admins', async (req, res) => {
+  try {
+    const result = await new Auth().getAdmins();
+  } catch (error) {
+    console.error('Get admin error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
 export default router;
