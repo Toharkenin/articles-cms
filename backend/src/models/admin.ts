@@ -1,15 +1,21 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Admin extends Document {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    phoneNumber: string;
-    role: 'super_admin' | 'admin';
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
 }
 
 const AdminSchema: Schema = new Schema({
+  id: {
+    type: Number,
+    required: true,
+    unique: true,
+  },
   firstName: {
     type: String,
     required: true,
@@ -31,11 +37,11 @@ const AdminSchema: Schema = new Schema({
     required: true,
   },
   role: {
-     type: String,
-     enum: ['super_admin', 'admin'],
-     default: 'admin',
-     required: true,
-    }
+    type: String,
+    enum: ['super_admin', 'admin'],
+    default: 'admin',
+    required: true,
+  },
 });
 
 const AdminModel = mongoose.model<Admin>('Admin', AdminSchema);

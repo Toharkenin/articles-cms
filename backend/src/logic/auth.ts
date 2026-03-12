@@ -39,7 +39,7 @@ class Auth {
       if (!admin) {
         return {
           success: false,
-          message: 'Invalid email or password'
+          message: 'Invalid email or password',
         };
       }
 
@@ -48,7 +48,7 @@ class Auth {
       if (!isPasswordValid) {
         return {
           success: false,
-          message: 'Invalid email or password'
+          message: 'Invalid email or password',
         };
       }
 
@@ -56,11 +56,11 @@ class Auth {
       const token = jwt.sign(
         {
           id: admin._id.toString(),
-          role: admin.role
+          role: admin.role,
         },
         this.jwtSecret,
         { expiresIn: '5d' }
-     );
+      );
 
       return {
         success: true,
@@ -71,18 +71,17 @@ class Auth {
           email: admin.email,
           firstName: admin.firstName,
           lastName: admin.lastName,
-          role: admin.role
-        }
+          role: admin.role,
+        },
       };
     } catch (error) {
       console.error('Login error:', error);
       return {
         success: false,
-        message: 'An error occurred during login'
+        message: 'An error occurred during login',
       };
     }
   }
-
 
   async createAdmin(
     firstName: string,
@@ -97,20 +96,25 @@ class Auth {
       if (existingAdmin) {
         return {
           success: false,
-          message: 'Admin with this email already exists'
+          message: 'Admin with this email already exists',
         };
       }
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Find the highest current id
+      const lastAdmin = await AdminModel.findOne().sort({ id: -1 });
+      const nextId = lastAdmin && lastAdmin.id ? lastAdmin.id + 1 : 1;
+
       // Create admin
       const admin = new AdminModel({
+        id: nextId,
         firstName,
         lastName,
         email: email.toLowerCase(),
         password: hashedPassword,
-        phoneNumber
+        phoneNumber,
       });
 
       await admin.save();
@@ -123,13 +127,13 @@ class Auth {
           email: admin.email,
           firstName: admin.firstName,
           lastName: admin.lastName,
-        }
+        },
       };
     } catch (error) {
       console.error('Create admin error:', error);
       return {
         success: false,
-        message: 'An error occurred while creating admin'
+        message: 'An error occurred while creating admin',
       };
     }
   }
