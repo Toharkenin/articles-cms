@@ -27,6 +27,15 @@ export const adminLogout = async () => {
   }
 };
 
+export const getAdmins = async () => {
+  try {
+    const response = await axiosInstance.get('/auth/get-admins', {});
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const createAdmin = async (
   firstName: string,
   lastName: string,
