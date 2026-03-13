@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import AdminModel from '../models/admin';
+import admin from '../models/admin';
 
-export type AdminRole = 'super_admin' | 'admin';
+export type AdminRole = 'super_admin' | 'site_editor' | 'section_editor' | 'author';
 
 interface AdminJwtPayload extends JwtPayload {
   role: AdminRole;
@@ -14,11 +15,7 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export const requireAdminAuth = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const requireAdminAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies?.['token'];
 
   if (!token) {
@@ -26,10 +23,7 @@ export const requireAdminAuth = async (
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
 
     const admin = await AdminModel.findById(decoded.id);
 

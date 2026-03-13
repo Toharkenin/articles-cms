@@ -11,7 +11,7 @@ interface LoginResult {
     email: string;
     firstName: string;
     lastName: string;
-    role: string;
+    role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
   };
 }
 
@@ -23,6 +23,8 @@ interface CreateAdminResult {
     email: string;
     firstName: string;
     lastName: string;
+    phoneNumber: string;
+    role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
   };
 }
 
@@ -88,7 +90,8 @@ class Auth {
     lastName: string,
     email: string,
     password: string,
-    phoneNumber: string
+    phoneNumber: string,
+    role: 'super_admin' | 'site_editor' | 'section_editor' | 'author'
   ): Promise<CreateAdminResult> {
     try {
       // Check if admin already exists
@@ -97,6 +100,14 @@ class Auth {
         return {
           success: false,
           message: 'Admin with this email already exists',
+        };
+      }
+
+      const existingPhone = await AdminModel.findOne({ phoneNumber });
+      if (existingPhone) {
+        return {
+          success: false,
+          message: 'Admin with this phone number already exists',
         };
       }
 
@@ -115,6 +126,7 @@ class Auth {
         email: email.toLowerCase(),
         password: hashedPassword,
         phoneNumber,
+        role,
       });
 
       await admin.save();
@@ -127,6 +139,8 @@ class Auth {
           email: admin.email,
           firstName: admin.firstName,
           lastName: admin.lastName,
+          phoneNumber: admin.phoneNumber,
+          role: admin.role,
         },
       };
     } catch (error) {
@@ -181,6 +195,35 @@ class Auth {
       return {
         success: false,
         message: 'An error occurred while fetching admins',
+      };
+    }
+  }
+
+  async getAdminById(id: number) {
+    try {
+      const admin = await AdminModel.findOne({ id });
+      if (!admin) {
+        return {
+          success: false,
+          message: 'Admin not found',
+        };
+      }
+      return {
+        success: true,
+        admin: {
+          id: admin.id,
+          email: admin.email,
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          phoneNumber: admin.phoneNumber,
+          role: admin.role,
+        },
+      };
+    } catch (error) {
+      console.error('Get admin by ID error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching admin',
       };
     }
   }

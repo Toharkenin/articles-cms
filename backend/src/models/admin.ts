@@ -38,8 +38,8 @@ const AdminSchema: Schema = new Schema({
   },
   role: {
     type: String,
-    enum: ['super_admin', 'admin'],
-    default: 'admin',
+    enum: ['super_admin', 'site_editor', 'section_editor', 'author'],
+    default: 'author',
     required: true,
   },
 });
