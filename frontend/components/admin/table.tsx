@@ -68,9 +68,7 @@ export function Table<T>({
   }, [openMenuId]);
 
   return (
-    <div
-      className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto ${className}`}
-    >
+    <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm ${className}`}>
       <table className="w-full text-sm">
         <thead className="bg-gray-100 text-gray-700 uppercase text-xs tracking-wider">
           <tr>
