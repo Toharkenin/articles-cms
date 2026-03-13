@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { createAdmin } from '@/services/auth';
-import { MdEmail, MdLock, MdPerson, MdPhone, MdWorkOutline } from 'react-icons/md';
+import { MdArrowBack, MdEmail, MdLock, MdPerson, MdPhone, MdWorkOutline } from 'react-icons/md';
 
 export default function NewAuthorPage() {
   const router = useRouter();
@@ -99,12 +99,32 @@ export default function NewAuthorPage() {
           phoneNumber: '',
           role: 'author',
         });
+      } else {
+        // Handle backend validation errors
+        const message = response.message || 'Failed to create admin. Please try again.';
+
+        // Set field-specific errors based on the message
+        if (message.toLowerCase().includes('email')) {
+          setErrors((prev) => ({ ...prev, email: message }));
+        } else if (message.toLowerCase().includes('phone')) {
+          setErrors((prev) => ({ ...prev, phoneNumber: message }));
+        } else {
+          setServerError(message);
+        }
       }
     } catch (error: any) {
       console.error('Error creating admin:', error);
       const errorMessage =
         error?.response?.data?.message || 'Failed to create admin. Please try again.';
-      setServerError(errorMessage);
+
+      // Set field-specific errors based on the message
+      if (errorMessage.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: errorMessage }));
+      } else if (errorMessage.toLowerCase().includes('phone')) {
+        setErrors((prev) => ({ ...prev, phoneNumber: errorMessage }));
+      } else {
+        setServerError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -119,12 +139,13 @@ export default function NewAuthorPage() {
     <div className="w-[90%] max-w-3xl mx-auto py-10">
       <div className="mb-8">
         <button
-          onClick={() => router.back()}
-          className="text-blue-600 hover:text-blue-700 mb-4 flex items-center gap-2"
+          onClick={() => router.push('/admin/authors')}
+          className="p-2 rounded-xl transition-all duration-200 hover:bg-[#EAF3FF] hover:text-[#2B60EA]"
+          title="Back to authors"
         >
-          ← Back
+          <MdArrowBack className="w-6 h-6" />
         </button>
-        <h1 className="text-3xl font-bold">Create New Admin</h1>
+        <h1 className="text-3xl font-bold mt-4">Create New Admin</h1>
         <p className="text-gray-600 mt-2">Add a new administrator to the system</p>
       </div>
 

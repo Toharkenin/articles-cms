@@ -68,43 +68,31 @@ router.post('/logout', (req, res) => {
 
 router.post('/create-admin', async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phoneNumber } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, role } = req.body;
 
-    // Check if admin already exists
-    const existingAdmin = await AdminModel.findOne({ email });
-    if (existingAdmin) {
-      return res.status(400).json({
-        success: false,
-        message: 'Admin with this email already exists',
-      });
-    }
-
-    const result = await new Auth().createAdmin(firstName, lastName, email, password, phoneNumber);
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create admin
-    const admin = new AdminModel({
+    const authService = new Auth();
+    const result = await authService.createAdmin(
       firstName,
       lastName,
       email,
-      password: hashedPassword,
+      password,
       phoneNumber,
-    });
-
-    await admin.save();
+      role
+    );
 
     res.json({
-      success: true,
-      message: 'Admin created successfully',
+      success: result.success,
+      message: result.message,
       admin: {
-        id: admin._id,
-        email: admin.email,
-        firstName: admin.firstName,
-        lastName: admin.lastName,
+        id: result.admin?.id,
+        email: result.admin?.email,
+        firstName: result.admin?.firstName,
+        lastName: result.admin?.lastName,
+        role: result.admin?.role,
       },
     });
   } catch (error) {
-    console.error('Seed admin error:', error);
+    console.error('Create admin error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -132,7 +120,7 @@ router.get('/get-admin', requireAdminAuth, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get admin error:', error);
+    console.error('Get admin by ID error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -143,8 +131,42 @@ router.get('/get-admin', requireAdminAuth, async (req, res) => {
 router.get('/get-admins', async (req, res) => {
   try {
     const result = await new Auth().getAdmins();
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+    res.json({
+      success: true,
+      admins: result.admins,
+    });
   } catch (error) {
-    console.error('Get admin error:', error);
+    console.error('Get admins error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
+router.get('/get-admin/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid admin ID',
+      });
+    }
+
+    const result = await new Auth().getAdminById(id);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    res.json({
+      success: true,
+      admin: result.admin,
+    });
+  } catch (error) {
+    console.error('Get admin by ID error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
