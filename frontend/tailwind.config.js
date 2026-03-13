@@ -10,4 +10,15 @@ module.exports = {
       },
     },
   },
+  theme: {
+    extend: {
+      colors: {
+        'theme-red': 'var(--theme-red)',
+        'theme-blue': 'var(--theme-blue)',
+        'theme-dark': 'var(--theme-dark)',
+        'theme-light': 'var(--theme-light)',
+        'indigo-600': 'var(--indigo-600)',
+      },
+    },
+  },
 };
