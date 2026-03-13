@@ -36,6 +36,15 @@ export const getAdmins = async () => {
   }
 };
 
+export const getAdminById = async (id: string) => {
+  try {
+    const response = await axiosInstance.get(`/auth/get-admin/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const createAdmin = async (
   firstName: string,
   lastName: string,
@@ -54,7 +63,11 @@ export const createAdmin = async (
       role,
     });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    // If backend returns an error response, extract and return it
+    if (error.response?.data) {
+      return error.response.data;
+    }
     throw error;
   }
 };

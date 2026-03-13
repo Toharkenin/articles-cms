@@ -2,60 +2,60 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableColumn, TableAction } from '@/components/admin/table';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
 import { MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
+import { getAdmins } from '@/services/auth';
 
 type Author = {
-  id: number;
-  name: string;
+  id: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
-  articlesCount?: number;
-  createdAt: Date | string;
 };
 
 export default function AuthorsPage() {
   const router = useRouter();
-  const [authors, setAuthors] = useState<Author[]>([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'site_editor',
-      articlesCount: 15,
-      createdAt: new Date('2024-01-15'),
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'author',
-      articlesCount: 23,
-      createdAt: new Date('2024-02-20'),
-    },
-    {
-      id: 3,
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      role: 'super_admin',
-      articlesCount: 8,
-      createdAt: new Date('2024-03-10'),
-    },
-  ]);
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        setLoading(true);
+        const response = await getAdmins();
+
+        if (response.success && response.admins) {
+          console.log('Fetched admins:', response.admins);
+          setAuthors(response.admins);
+        }
+      } catch (error) {
+        console.error('Error fetching admins:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdmins();
+  }, []);
 
   // Define table columns
   const columns: TableColumn<Author>[] = [
     {
       key: 'id',
       label: 'ID',
-      render: (author) => <span className="font-semibold text-gray-800">{author.id}</span>,
+      render: (author, index) => <span className="font-semibold text-gray-800">{index + 1}</span>,
     },
     {
       key: 'name',
       label: 'Name',
-      render: (author) => <span className="text-gray-700 font-medium">{author.name}</span>,
+      render: (author) => (
+        <span className="text-gray-700 font-medium">
+          {author.firstName} {author.lastName}
+        </span>
+      ),
     },
     {
       key: 'email',
@@ -75,20 +75,6 @@ export default function AuthorsPage() {
         return <span className="text-gray-700">{roleLabels[author.role] || author.role}</span>;
       },
     },
-    {
-      key: 'articlesCount',
-      label: 'Articles',
-      render: (author) => <span className="text-gray-700">{author.articlesCount || 0}</span>,
-    },
-    {
-      key: 'createdAt',
-      label: 'Created At',
-      render: (author) => (
-        <span className="text-gray-500 text-sm">
-          {new Date(author.createdAt).toLocaleDateString()}
-        </span>
-      ),
-    },
   ];
 
   // Define table actions
@@ -97,14 +83,14 @@ export default function AuthorsPage() {
       label: 'View',
       icon: <GrView size={16} />,
       onClick: (author) => {
-        console.log('View author:', author.id);
+        router.push(`/admin/authors/${author.id}/view`);
       },
     },
     {
       label: 'Edit',
       icon: <MdOutlineEdit size={16} />,
       onClick: (author) => {
-        console.log('Edit author:', author.id);
+        router.push(`/admin/authors/${author.id}/edit`);
       },
     },
     {
@@ -116,6 +102,16 @@ export default function AuthorsPage() {
       className: 'text-red-600 hover:bg-red-50',
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="w-[90%] mx-auto py-10">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-xl text-gray-600">Loading authors...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[90%] mx-auto py-10">
