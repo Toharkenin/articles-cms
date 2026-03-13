@@ -113,14 +113,16 @@ router.get('/get-admin', requireAdminAuth, async (req, res) => {
     res.json({
       success: true,
       admin: {
+        id: admin._id.toString(),
         email: admin.email,
         firstName: admin.firstName,
         lastName: admin.lastName,
+        phoneNumber: admin.phoneNumber,
         role: admin.role,
       },
     });
   } catch (error) {
-    console.error('Get admin by ID error:', error);
+    console.error('Get admin error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -149,8 +151,9 @@ router.get('/get-admins', async (req, res) => {
 
 router.get('/get-admin/:id', async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    const id = typeof req.params.id === 'string' ? req.params.id : req.params.id[0];
+
+    if (!id) {
       return res.status(400).json({
         success: false,
         message: 'Invalid admin ID',

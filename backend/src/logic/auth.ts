@@ -199,9 +199,9 @@ class Auth {
     }
   }
 
-  async getAdminById(id: number) {
+  async getAdminById(id: string) {
     try {
-      const admin = await AdminModel.findOne({ id });
+      const admin = await AdminModel.findById(id);
       if (!admin) {
         return {
           success: false,
@@ -211,7 +211,7 @@ class Auth {
       return {
         success: true,
         admin: {
-          id: admin.id,
+          id: admin._id.toString(),
           email: admin.email,
           firstName: admin.firstName,
           lastName: admin.lastName,
