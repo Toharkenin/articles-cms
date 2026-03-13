@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { VscSettings } from 'react-icons/vsc';
 
 export interface TableColumn<T> {
@@ -44,9 +44,32 @@ export function Table<T>({
     setOpenMenuId(openMenuId === itemKey ? null : itemKey);
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Check if click is outside the menu dropdown
+      if (
+        openMenuId !== null &&
+        !target.closest('.menu-dropdown') &&
+        !target.closest('button[title="More actions"]')
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId !== null) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openMenuId]);
+
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden overflow-x-auto ${className}`}
+      className={`bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto ${className}`}
     >
       <table className="w-full text-sm">
         <thead className="bg-gray-100 text-gray-700 uppercase text-xs tracking-wider">
