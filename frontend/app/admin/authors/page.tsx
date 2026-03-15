@@ -2,7 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Table, TableColumn, TableAction } from '@/components/admin/table';
-import { useState, useEffect } from 'react';
+import { TableFilter, FilterField, FilterValues } from '@/components/admin/table-filter';
+import { filterData } from '@/components/admin/table-filter-utils';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
 import { MdOutlineEdit, MdBlock, MdCheckCircle } from 'react-icons/md';
@@ -21,6 +23,7 @@ export default function AuthorsPage() {
   const router = useRouter();
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterValues>({});
 
   useEffect(() => {
     const fetchAdmins = async () => {
@@ -41,6 +44,38 @@ export default function AuthorsPage() {
 
     fetchAdmins();
   }, []);
+
+  // Define filter fields
+  const filterFields: FilterField[] = [
+    {
+      key: 'role',
+      label: 'Role',
+      type: 'select',
+      options: [
+        { value: 'super_admin', label: 'Super Admin' },
+        { value: 'site_editor', label: 'Site Editor' },
+        { value: 'section_editor', label: 'Section Editor' },
+        { value: 'author', label: 'Author' },
+      ],
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'blocked', label: 'Blocked' },
+      ],
+    },
+  ];
+
+  // Filter authors based on current filters
+  const filteredAuthors = useMemo(() => {
+    return filterData(authors, filters, ['firstName', 'lastName', 'email'], {
+      role: (author, filterValue) => author.role === filterValue,
+      status: (author, filterValue) => (author.status || 'active') === filterValue,
+    });
+  }, [authors, filters]);
 
   const handleBlockAdmin = async (author: Author) => {
     try {
@@ -157,12 +192,14 @@ export default function AuthorsPage() {
         <Button onClick={() => router.push('/admin/authors/new')}>+ New Author</Button>
       </div>
 
+      <TableFilter filters={filterFields} onFilterChange={setFilters} initialValues={filters} />
+
       <Table
         columns={columns}
-        data={authors}
+        data={filteredAuthors}
         actions={actions}
         getRowKey={(author) => author.id}
-        emptyMessage="No authors available"
+        emptyMessage="No authors found matching your filters"
       />
     </div>
   );

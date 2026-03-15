@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { SuccessPopup } from '@/components/ui/success-popup';
 import { changeCategoryStatus, getCategories } from '@/services/articles';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { GrView } from 'react-icons/gr';
 import { MdOutlineArticle } from 'react-icons/md';
 import { TbStatusChange } from 'react-icons/tb';
 import { Table, TableColumn, TableAction } from '@/components/admin/table';
+import { TableFilter, FilterField, FilterValues } from '@/components/admin/table-filter';
+import { filterData } from '@/components/admin/table-filter-utils';
 
 type Category = {
   id: number;
@@ -27,6 +29,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isNewCategoryOpen, setIsNewCategoryOpen] = useState(false);
   const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterValues>({});
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -54,6 +57,31 @@ export default function CategoriesPage() {
       console.error('Error changing category status:', error);
     }
   };
+
+  // Define filter fields
+  const filterFields: FilterField[] = [
+    {
+      key: 'isActive',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'true', label: 'Active' },
+        { value: 'false', label: 'Inactive' },
+      ],
+    },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      type: 'dateRange',
+    },
+  ];
+
+  // Filter categories based on current filters
+  const filteredCategories = useMemo(() => {
+    return filterData(categories, filters, ['name', 'description'], {
+      isActive: (category, filterValue) => String(category.isActive) === filterValue,
+    });
+  }, [categories, filters]);
 
   // Define table columns
   const columns: TableColumn<Category>[] = [
@@ -116,12 +144,14 @@ export default function CategoriesPage() {
         <Button onClick={() => setIsNewCategoryOpen(true)}>+ New Category</Button>
       </div>
 
+      <TableFilter filters={filterFields} onFilterChange={setFilters} initialValues={filters} />
+
       <Table
         columns={columns}
-        data={categories}
+        data={filteredCategories}
         actions={actions}
         getRowKey={(category) => category.id}
-        emptyMessage="No categories available"
+        emptyMessage="No categories found matching your filters"
       />
 
       <NewCategoryPopup

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { StatsCard } from '../../../components/admin/states-card';
 import { ArticleStatusBadge } from '../../../components/admin/article-status-badge';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,8 @@ import { SuccessPopup } from '@/components/ui/success-popup';
 import { RiInboxUnarchiveLine, RiInboxArchiveLine } from 'react-icons/ri';
 import { Button } from '@/components/ui/button';
 import { Table, TableColumn, TableAction } from '@/components/admin/table';
+import { TableFilter, FilterField, FilterValues } from '@/components/admin/table-filter';
+import { filterData } from '@/components/admin/table-filter-utils';
 
 interface Article {
   _id?: string;
@@ -32,6 +34,7 @@ export default function ArticlesPage() {
   const [showStatusChangePopup, setShowStatusChangePopup] = useState<boolean>(false);
   const [statusChangeMessage, setStatusChangeMessage] = useState<string>('');
   const [deleteArticleId, setDeleteArticleId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterValues>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -63,6 +66,61 @@ export default function ArticlesPage() {
 
     loadArticles();
   }, []);
+
+  // Get unique categories for filter options
+  const uniqueCategories = useMemo(() => {
+    const categories = articles
+      .map((a) => a.category)
+      .filter((c): c is { name: string; id?: number } => c !== null);
+    const uniqueMap = new Map(categories.map((c) => [c.name, c]));
+    return Array.from(uniqueMap.values()).map((c) => ({
+      value: c.name,
+      label: c.name,
+    }));
+  }, [articles]);
+
+  // Define filter fields
+  const filterFields: FilterField[] = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'published', label: 'Published' },
+        { value: 'draft', label: 'Draft' },
+        { value: 'archive', label: 'Archived' },
+      ],
+    },
+    {
+      key: 'isFeatured',
+      label: 'Featured',
+      type: 'select',
+      options: [
+        { value: 'true', label: 'Yes' },
+        { value: 'false', label: 'No' },
+      ],
+    },
+    {
+      key: 'category',
+      label: 'Category',
+      type: 'select',
+      options: uniqueCategories,
+    },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      type: 'dateRange',
+    },
+  ];
+
+  // Filter articles based on current filters
+  const filteredArticles = useMemo(() => {
+    return filterData(articles, filters, ['title', 'slug', 'author'], {
+      status: (article, filterValue) => article.status === filterValue,
+      isFeatured: (article, filterValue) => String(article.isFeatured) === filterValue,
+      category: (article, filterValue) => article.category?.name === filterValue,
+    });
+  }, [articles, filters]);
 
   const total = articles.length;
   const published = articles.filter((a) => a.status === 'published').length;
@@ -234,13 +292,16 @@ export default function ArticlesPage() {
         <StatsCard title="ARCHIVED" value={archived} color="bg-theme-dark" />
       </div>
 
+      {/* Filter */}
+      <TableFilter filters={filterFields} onFilterChange={setFilters} initialValues={filters} />
+
       {/* Table */}
       <Table
         columns={columns}
-        data={articles}
+        data={filteredArticles}
         actions={actions}
         getRowKey={(article, index) => article._id || article.id || index}
-        emptyMessage="No articles available"
+        emptyMessage="No articles found matching your filters"
       />
 
       <SuccessPopup
