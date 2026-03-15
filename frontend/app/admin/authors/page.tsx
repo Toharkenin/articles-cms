@@ -5,8 +5,8 @@ import { Table, TableColumn, TableAction } from '@/components/admin/table';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GrView } from 'react-icons/gr';
-import { MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
-import { getAdmins } from '@/services/auth';
+import { MdOutlineEdit, MdBlock, MdCheckCircle } from 'react-icons/md';
+import { changeAdminStatus, getAdmins } from '@/services/auth';
 
 type Author = {
   id: string;
@@ -14,6 +14,7 @@ type Author = {
   lastName: string;
   email: string;
   role: string;
+  status?: string;
 };
 
 export default function AuthorsPage() {
@@ -40,6 +41,23 @@ export default function AuthorsPage() {
 
     fetchAdmins();
   }, []);
+
+  const handleBlockAdmin = async (author: Author) => {
+    try {
+      const newStatus = author.status === 'active' ? 'blocked' : 'active';
+      const response = await changeAdminStatus(author.id, newStatus);
+      if (response.success) {
+        // Update the status in the local state
+        setAuthors((prev) =>
+          prev.map((a) => (a.id === author.id ? { ...a, status: newStatus } : a))
+        );
+      } else {
+        console.error('Error changing admin status:', response.message);
+      }
+    } catch (error) {
+      console.error('Error changing admin status:', error);
+    }
+  };
 
   // Define table columns
   const columns: TableColumn<Author>[] = [
@@ -75,6 +93,23 @@ export default function AuthorsPage() {
         return <span className="text-gray-700">{roleLabels[author.role] || author.role}</span>;
       },
     },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (author) => {
+        const status = author.status || 'active';
+        const isActive = status === 'active';
+        return (
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+              isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {isActive ? 'Active' : 'Blocked'}
+          </span>
+        );
+      },
+    },
   ];
 
   // Define table actions
@@ -94,12 +129,14 @@ export default function AuthorsPage() {
       },
     },
     {
-      label: 'Delete',
-      icon: <MdDeleteOutline size={16} />,
-      onClick: (author) => {
-        setAuthors((prev) => prev.filter((a) => a.id !== author.id));
-      },
-      className: 'text-red-600 hover:bg-red-50',
+      label: (author) => (author.status === 'blocked' ? 'Unblock' : 'Block'),
+      icon: (author) =>
+        author.status === 'blocked' ? <MdCheckCircle size={16} /> : <MdBlock size={16} />,
+      onClick: handleBlockAdmin,
+      className: (author) =>
+        author.status === 'blocked'
+          ? 'text-green-600 hover:bg-green-50'
+          : 'text-red-600 hover:bg-red-50',
     },
   ];
 

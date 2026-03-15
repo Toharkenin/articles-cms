@@ -71,3 +71,15 @@ export const createAdmin = async (
     throw error;
   }
 };
+
+export const changeAdminStatus = async (id: string, status: 'active' | 'blocked') => {
+  try {
+    const response = await axiosInstance.patch(`/auth/change-admin-status/${id}`, { status });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data) {
+      return error.response.data;
+    }
+    throw error;
+  }
+};
