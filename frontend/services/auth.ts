@@ -83,3 +83,26 @@ export const changeAdminStatus = async (id: string, status: 'active' | 'blocked'
     throw error;
   }
 };
+
+export const updateAdmin = async (
+  id: string,
+  firstName: string,
+  lastName: string,
+  phoneNumber: string,
+  role: string
+) => {
+  try {
+    const response = await axiosInstance.patch(`/auth/update-admin/${id}`, {
+      firstName,
+      lastName,
+      phoneNumber,
+      role,
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.data) {
+      return error.response.data;
+    }
+    throw error;
+  }
+};
