@@ -11,10 +11,10 @@ export interface TableColumn<T> {
 }
 
 export interface TableAction<T> {
-  label: string;
-  icon?: ReactNode;
+  label: string | ((item: T) => string);
+  icon?: ReactNode | ((item: T) => ReactNode);
   onClick: (item: T) => void;
-  className?: string;
+  className?: string | ((item: T) => string);
   condition?: (item: T) => boolean;
 }
 
@@ -129,26 +129,39 @@ export function Table<T>({
                         <div className="menu-dropdown absolute right-0 mt-3 w-44 bg-white border border-gray-200 rounded-2xl shadow-lg py-2 z-20">
                           {actions
                             .filter((action) => !action.condition || action.condition(item))
-                            .map((action, actionIndex) => (
-                              <button
-                                key={actionIndex}
-                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                                  action.className || ''
-                                }`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  action.onClick(item);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                {action.icon && (
-                                  <span className="inline-block mr-2 align-text-bottom">
-                                    {action.icon}
-                                  </span>
-                                )}
-                                {action.label}
-                              </button>
-                            ))}
+                            .map((action, actionIndex) => {
+                              const label =
+                                typeof action.label === 'function'
+                                  ? action.label(item)
+                                  : action.label;
+                              const icon =
+                                typeof action.icon === 'function' ? action.icon(item) : action.icon;
+                              const className =
+                                typeof action.className === 'function'
+                                  ? action.className(item)
+                                  : action.className;
+
+                              return (
+                                <button
+                                  key={actionIndex}
+                                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                                    className || ''
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    action.onClick(item);
+                                    setOpenMenuId(null);
+                                  }}
+                                >
+                                  {icon && (
+                                    <span className="inline-block mr-2 align-text-bottom">
+                                      {icon}
+                                    </span>
+                                  )}
+                                  {label}
+                                </button>
+                              );
+                            })}
                         </div>
                       )}
                     </td>
