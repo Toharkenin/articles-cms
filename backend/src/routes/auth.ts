@@ -89,6 +89,7 @@ router.post('/create-admin', async (req, res) => {
         firstName: result.admin?.firstName,
         lastName: result.admin?.lastName,
         role: result.admin?.role,
+        status: result.admin?.status,
       },
     });
   } catch (error) {
@@ -119,6 +120,7 @@ router.get('/get-admin', requireAdminAuth, async (req, res) => {
         lastName: admin.lastName,
         phoneNumber: admin.phoneNumber,
         role: admin.role,
+        status: admin.status || 'active',
       },
     });
   } catch (error) {
@@ -170,6 +172,39 @@ router.get('/get-admin/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Get admin by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
+router.patch('/change-admin-status/:id', async (req, res) => {
+  try {
+    const id = typeof req.params.id === 'string' ? req.params.id : req.params.id[0];
+    const { status } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid admin ID',
+      });
+    }
+
+    if (!status || (status !== 'active' && status !== 'blocked')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be "active" or "blocked"',
+      });
+    }
+
+    const result = await new Auth().changeAdminStatus(id, status);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    res.json(result);
+  } catch (error) {
+    console.error('Change admin status error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

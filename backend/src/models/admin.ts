@@ -7,6 +7,7 @@ export interface Admin extends Document {
   email: string;
   password: string;
   phoneNumber: string;
+  status?: 'active' | 'blocked';
   role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
 }
 
@@ -40,6 +41,12 @@ const AdminSchema: Schema = new Schema({
     type: String,
     enum: ['super_admin', 'site_editor', 'section_editor', 'author'],
     default: 'author',
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['active', 'blocked'],
+    default: 'active',
     required: true,
   },
 });

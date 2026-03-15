@@ -12,6 +12,7 @@ interface LoginResult {
     firstName: string;
     lastName: string;
     role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
+    status: 'active' | 'blocked';
   };
 }
 
@@ -25,6 +26,7 @@ interface CreateAdminResult {
     lastName: string;
     phoneNumber: string;
     role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
+    status: 'active' | 'blocked';
   };
 }
 
@@ -74,6 +76,7 @@ class Auth {
           firstName: admin.firstName,
           lastName: admin.lastName,
           role: admin.role,
+          status: admin.status || 'active',
         },
       };
     } catch (error) {
@@ -141,6 +144,7 @@ class Auth {
           lastName: admin.lastName,
           phoneNumber: admin.phoneNumber,
           role: admin.role,
+          status: admin.status || 'active',
         },
       };
     } catch (error) {
@@ -188,6 +192,7 @@ class Auth {
           firstName: admin.firstName,
           lastName: admin.lastName,
           role: admin.role,
+          status: admin.status || 'active',
         })),
       };
     } catch (error) {
@@ -217,6 +222,7 @@ class Auth {
           lastName: admin.lastName,
           phoneNumber: admin.phoneNumber,
           role: admin.role,
+          status: admin.status || 'active',
         },
       };
     } catch (error) {
@@ -224,6 +230,30 @@ class Auth {
       return {
         success: false,
         message: 'An error occurred while fetching admin',
+      };
+    }
+  }
+
+  async changeAdminStatus(id: string, status: 'active' | 'blocked') {
+    try {
+      const admin = await AdminModel.findById(id);
+      if (!admin) {
+        return {
+          success: false,
+          message: 'Admin not found',
+        };
+      }
+      admin.status = status;
+      await admin.save();
+      return {
+        success: true,
+        message: `Admin status changed to ${status} successfully`,
+      };
+    } catch (error) {
+      console.error('Change admin status error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while changing admin status',
       };
     }
   }
