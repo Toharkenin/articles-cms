@@ -212,4 +212,44 @@ router.patch('/change-admin-status/:id', async (req, res) => {
   }
 });
 
+router.patch('/update-admin/:id', async (req, res) => {
+  try {
+    const id = typeof req.params.id === 'string' ? req.params.id : req.params.id[0];
+    const { firstName, lastName, phoneNumber, role } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid admin ID',
+      });
+    }
+
+    if (!firstName || !lastName || !phoneNumber || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'firstName, lastName, phoneNumber, and role are required',
+      });
+    }
+
+    if (!['super_admin', 'site_editor', 'section_editor', 'author'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role. Must be one of: super_admin, site_editor, section_editor, author',
+      });
+    }
+
+    const result = await new Auth().updateAdmin(id, firstName, lastName, phoneNumber, role);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    res.json(result);
+  } catch (error) {
+    console.error('Update admin error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
 export default router;

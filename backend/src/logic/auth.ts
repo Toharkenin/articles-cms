@@ -30,6 +30,20 @@ interface CreateAdminResult {
   };
 }
 
+interface UpdateAdminResult {
+  success: boolean;
+  message: string;
+  admin?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    role: 'super_admin' | 'site_editor' | 'section_editor' | 'author';
+    status: 'active' | 'blocked';
+  };
+}
+
 class Auth {
   private jwtSecret: string;
 
@@ -254,6 +268,63 @@ class Auth {
       return {
         success: false,
         message: 'An error occurred while changing admin status',
+      };
+    }
+  }
+
+  async updateAdmin(
+    id: string,
+    firstName: string,
+    lastName: string,
+    phoneNumber: string,
+    role: 'super_admin' | 'site_editor' | 'section_editor' | 'author'
+  ): Promise<UpdateAdminResult> {
+    try {
+      const admin = await AdminModel.findById(id);
+      if (!admin) {
+        return {
+          success: false,
+          message: 'Admin not found',
+        };
+      }
+
+      // Check if phone number is being changed and if it's already in use
+      if (phoneNumber !== admin.phoneNumber) {
+        const existingPhone = await AdminModel.findOne({ phoneNumber });
+        if (existingPhone) {
+          return {
+            success: false,
+            message: 'Admin with this phone number already exists',
+          };
+        }
+      }
+
+      // Update admin fields
+      admin.firstName = firstName;
+      admin.lastName = lastName;
+      admin.phoneNumber = phoneNumber;
+      admin.role = role;
+
+      await admin.save();
+
+      return {
+        success: true,
+        message: 'Admin updated successfully',
+        admin: {
+          id: admin._id.toString(),
+          email: admin.email,
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          phoneNumber: admin.phoneNumber,
+          role: admin.role,
+          status: admin.status || 'active',
+        },
+      };
+    } catch (error) {
+      console.error('Update admin error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while updating admin',
       };
     }
   }
