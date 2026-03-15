@@ -80,7 +80,7 @@ export default function ProfileDropdown({
       {/* Avatar Button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 
+        className="w-10 h-10 rounded-full bg-gradient-to-br from-theme-red to-[#c81d25] 
                  flex items-center justify-center text-white font-normal 
                  shadow-md hover:shadow-lg transition-all duration-200 
                  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400"
