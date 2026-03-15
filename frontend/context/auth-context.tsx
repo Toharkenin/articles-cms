@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useState, useCallback } from 'react';
 type AuthContextData = {
   isLoggedIn: boolean;
   isAuthLoading: boolean;
+  adminRole: string | null;
   login: (token: string) => void;
   logout: () => void;
 };
@@ -34,6 +35,7 @@ export default function AuthContextWrapper({ children }: { children: ReactNode }
       defaultValue={{
         isLoggedIn: false,
         isAuthLoading: true,
+        adminRole: null,
         login,
         logout,
       }}
@@ -55,20 +57,24 @@ function AuthInitializer({ children }: { children: ReactNode }) {
 
     async function checkAuth() {
       if (typeof window !== 'undefined' && window.location.pathname === '/admin/login') {
-        update({ isLoggedIn: false, isAuthLoading: false });
+        update({ isLoggedIn: false, isAuthLoading: false, adminRole: null });
         setChecked(true);
         return;
       }
 
       try {
-        await getAdminProfile();
+        const profile = await getAdminProfile();
         if (isMounted) {
-          update({ isLoggedIn: true, isAuthLoading: false });
+          update({
+            isLoggedIn: true,
+            isAuthLoading: false,
+            adminRole: profile?.admin?.role || null,
+          });
           setChecked(true);
         }
       } catch {
         if (isMounted) {
-          update({ isLoggedIn: false, isAuthLoading: false });
+          update({ isLoggedIn: false, isAuthLoading: false, adminRole: null });
           setChecked(true);
         }
       }
