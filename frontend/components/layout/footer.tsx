@@ -1,14 +1,51 @@
+'use client';
+
+import Link from 'next/link';
+import { LuTwitter, LuFacebook, LuLinkedin, LuMail } from 'react-icons/lu';
+import { useState, useEffect } from 'react';
+import { getCategories } from '@/services/articles';
+
+interface Category {
+  id: number;
+  name: string;
+  slug?: string;
+  isActive: boolean;
+}
+
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategoriesData = async () => {
+      try {
+        const data = await getCategories();
+        if (data && data.length > 0) {
+          // Only show active categories
+          const activeCategories = data.filter((cat) => cat.isActive);
+          setCategories(activeCategories.slice(0, 5)); // Limit to 5 categories
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+
+    fetchCategoriesData();
+  }, []);
+
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
+    <footer className="bg-theme-dark text-gray-300 mt-auto">
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Jeo Politics</h3>
-            <p className="text-sm leading-relaxed">
-              Your trusted source for insightful articles on politics, technology, 
-              culture, and more. Stay informed with quality journalism.
+            <div className="flex flex-col leading-tight mb-4">
+              <span className="text-2xl font-serif font-bold text-white">Jeo Politics</span>
+              <span className="text-[10px] tracking-[0.35em] text-gray-400">GLOBAL AFFAIRS</span>
+            </div>
+            <p className="text-sm leading-relaxed text-gray-400">
+              In-depth analysis and insights on geopolitical developments, regional dynamics, and
+              international affairs.
             </p>
           </div>
 
@@ -17,24 +54,29 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/" className="hover:text-white transition">
+                <Link href="/" className="hover:text-white transition">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/articals" className="hover:text-white transition">
-                  Articles
-                </a>
+                <Link href="/articles" className="hover:text-white transition">
+                  All Articles
+                </Link>
               </li>
               <li>
-                <a href="/about" className="hover:text-white transition">
+                <Link href="/authors" className="hover:text-white transition">
+                  Authors
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-white transition">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="hover:text-white transition">
+                <Link href="/contact" className="hover:text-white transition">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -43,62 +85,81 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Categories</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <a href="/category/politics" className="hover:text-white transition">
-                  Politics
-                </a>
-              </li>
-              <li>
-                <a href="/category/technology" className="hover:text-white transition">
-                  Technology
-                </a>
-              </li>
-              <li>
-                <a href="/category/environment" className="hover:text-white transition">
-                  Environment
-                </a>
-              </li>
-              <li>
-                <a href="/category/economy" className="hover:text-white transition">
-                  Economy
-                </a>
-              </li>
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <Link
+                    href={`/categories/${category.slug || category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="hover:text-white transition"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Social & Newsletter */}
+          {/* Newsletter & Social */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Follow Us</h3>
-            <div className="flex space-x-4 mb-6">
-              <a href="#" className="hover:text-white transition" aria-label="Twitter">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-                </svg>
+            <h3 className="text-white font-semibold mb-4">Stay Connected</h3>
+            <p className="text-sm mb-4 text-gray-400">
+              Get weekly insights delivered to your inbox.
+            </p>
+            <div className="flex gap-3 mb-6">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-800 hover:bg-theme-blue flex items-center justify-center transition"
+                aria-label="Twitter"
+              >
+                <LuTwitter size={18} />
               </a>
-              <a href="#" className="hover:text-white transition" aria-label="Facebook">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                </svg>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-800 hover:bg-theme-blue flex items-center justify-center transition"
+                aria-label="Facebook"
+              >
+                <LuFacebook size={18} />
               </a>
-              <a href="#" className="hover:text-white transition" aria-label="LinkedIn">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"></path>
-                  <circle cx="4" cy="4" r="2"></circle>
-                </svg>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full bg-gray-800 hover:bg-theme-blue flex items-center justify-center transition"
+                aria-label="LinkedIn"
+              >
+                <LuLinkedin size={18} />
+              </a>
+              <a
+                href="mailto:contact@jeopolitics.com"
+                className="w-10 h-10 rounded-full bg-gray-800 hover:bg-theme-blue flex items-center justify-center transition"
+                aria-label="Email"
+              >
+                <LuMail size={18} />
               </a>
             </div>
-            <p className="text-sm mb-2">Subscribe to our newsletter</p>
-            <input
-              type="email"
-              placeholder="Your email"
-              className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-gray-500"
-            />
+            <Link
+              href="#newsletter"
+              className="inline-block w-full text-center bg-theme-red hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+            >
+              Subscribe Now
+            </Link>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Jeo Politics. All rights reserved.</p>
+        <div className="border-t border-gray-700 mt-10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+          <p>&copy; {currentYear} Jeo Politics. All rights reserved.</p>
+          <div className="flex gap-6 mt-4 md:mt-0">
+            <Link href="/privacy" className="hover:text-white transition">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-white transition">
+              Terms of Service
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
