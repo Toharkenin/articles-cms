@@ -7,6 +7,8 @@ module.exports = {
         sm: '409px', // Small-medium smartphones (409-639px)
         md: '640px', // Medium-large smartphones (640-767px)
         lg: '768px', // Tablets
+        xl: '1024px',
+        '2xl': '1280px',
       },
     },
   },
