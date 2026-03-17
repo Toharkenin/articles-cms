@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { useState } from 'react';
+import { useAuthContext } from '@/context/auth-context';
 
 const navItems = [
   {
@@ -26,6 +27,10 @@ const navItems = [
       {
         name: 'Categories',
         href: '/admin/articles/categories',
+      },
+      {
+        name: 'New Article',
+        href: '/admin/articles/new',
       },
     ],
   },
@@ -62,12 +67,22 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [articlesOpen, setArticlesOpen] = useState(false);
+  const { value } = useAuthContext();
+  const { adminRole } = value;
+
+  // Filter nav items based on role
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.name === 'Authors') {
+      return adminRole === 'super_admin';
+    }
+    return true;
+  });
 
   return (
     <aside className="w-64 bg-[#F7F9FC] border-r border-gray-200 min-h-screen flex flex-col">
       <nav className="flex-1 p-4 pt-6">
         <div className="space-y-2">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             if (item.name === 'Articles') {
               const isDropdownActive = pathname?.startsWith('/admin/articles');
 
