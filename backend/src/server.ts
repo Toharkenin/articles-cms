@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import authRouter from './routes/auth';
 import articlesRouter from './routes/articles';
 import mediaRouter from './routes/media';
+import subscriptionRouter from './routes/subscription';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 app.use('/api/articles', articlesRouter);
 app.use('/api/media', mediaRouter);
+app.use('/api/subscription', subscriptionRouter);
 
 app.get('/health', (req, res) => {
   res.json({ ok: true });
