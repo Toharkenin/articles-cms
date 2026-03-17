@@ -77,7 +77,6 @@ const ArticleSchema: Schema = new Schema({
   mainArticle: {
     type: Boolean,
     default: false,
-    unique: true,
   },
 });
 

@@ -18,6 +18,7 @@ interface Article {
   };
   status: 'draft' | 'published' | 'archive';
   isFeatured: boolean;
+  mainArticle?: boolean;
   contentHtml: string;
   featuredImage?: string;
   createdAt: string;
@@ -114,9 +115,17 @@ export default function ViewArticlePage() {
 
         {/* Info Banner */}
         <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-2">
-          <span className="text-sm text-gray-500">
-            Preview Mode — This is how the article appears to users
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">
+              Preview Mode — This is how the article appears to users
+            </span>
+            {article.mainArticle && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-red-50 rounded-lg border border-red-200">
+                <div className="w-3 h-3 bg-red-600 rounded-sm" />
+                <span className="text-sm font-medium text-red-600">Main Article</span>
+              </div>
+            )}
+          </div>
 
           <div className="relative" ref={popupRef}>
             <button
@@ -163,6 +172,13 @@ export default function ViewArticlePage() {
 
         {/* Article Content */}
         <article className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Article Title */}
+          <div className="border-b border-gray-200 px-8 pt-8 pb-6">
+            <h1 className="text-4xl font-serif font-bold text-gray-900 leading-tight">
+              {article.title}
+            </h1>
+          </div>
+
           {/* Article Content HTML */}
           <div
             className="prose prose-lg max-w-none p-8 article-content"

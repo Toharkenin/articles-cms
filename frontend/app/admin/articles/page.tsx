@@ -22,6 +22,7 @@ interface Article {
   author?: string;
   category: { name: string; id?: number } | null;
   isFeatured: boolean;
+  mainArticle?: boolean;
   createdAt: Date | string;
   updatedAt?: Date | string;
   status: 'draft' | 'published' | 'archive';
@@ -180,6 +181,17 @@ export default function ArticlesPage() {
 
   // Define table columns
   const columns: TableColumn<Article>[] = [
+    {
+      key: 'mainArticle',
+      label: '',
+      render: (article) => (
+        <div className="flex justify-center">
+          {article.mainArticle && (
+            <div className="w-3 h-3 bg-theme-red rounded-sm" title="Main Article" />
+          )}
+        </div>
+      ),
+    },
     {
       key: 'id',
       label: 'ID',

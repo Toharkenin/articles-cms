@@ -37,6 +37,7 @@ type InitialArticle = Partial<{
   slug: string;
   category: Category | null;
   isFeatured: boolean;
+  mainArticle: boolean;
   createdAt: Date;
   contentJson: any;
   contentHtml: string;
@@ -67,6 +68,7 @@ export default function ArticleForm({
   const [slug, setSlug] = useState('');
   const [category, setCategory] = useState<Category | null>(null);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isMainArticle, setIsMainArticle] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<ArticleStatus | null>(null);
 
   const [contentJson, setContentJson] = useState<any>(null);
@@ -105,6 +107,7 @@ export default function ArticleForm({
       slug,
       category,
       isFeatured,
+      mainArticle: isMainArticle,
       createdAt,
       contentJson,
       contentHtml,
@@ -116,6 +119,7 @@ export default function ArticleForm({
       slug,
       category,
       isFeatured,
+      isMainArticle,
       createdAt,
       contentJson,
       contentHtml,
@@ -146,6 +150,7 @@ export default function ArticleForm({
       const newSlug = initial.slug || '';
       const newCategory = initial.category || null;
       const newIsFeatured = initial.isFeatured || false;
+      const newIsMainArticle = initial.mainArticle || false;
       const newContentJson = initial.contentJson || null;
       const newContentHtml = initial.contentHtml || '';
       const newFeaturedImage = initial.featuredImage || '';
@@ -165,6 +170,7 @@ export default function ArticleForm({
       setSlug(newSlug);
       setCategory(newCategory);
       setIsFeatured(newIsFeatured);
+      setIsMainArticle(newIsMainArticle);
       setContentJson(newContentJson);
       setContentHtml(newContentHtml);
       setFeaturedImageUrl(newFeaturedImage);
@@ -204,6 +210,7 @@ export default function ArticleForm({
         slug: (slug || autoSlug).trim(),
         category,
         isFeatured,
+        mainArticle: isMainArticle,
         createdAt,
         status: submitStatus || 'draft',
         contentJson,
@@ -288,15 +295,30 @@ export default function ArticleForm({
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300"
-                checked={isFeatured}
-                onChange={(e) => setIsFeatured(e.target.checked)}
-              />
-              Featured article
-            </label>
+            <div className="flex items-center gap-4">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-slate-300"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                />
+                Featured article
+              </label>
+
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded accent-red-600 cursor-pointer"
+                  checked={isMainArticle}
+                  onChange={(e) => setIsMainArticle(e.target.checked)}
+                />
+                <span className="flex items-center gap-1.5">
+                  Main article
+                  <span className="text-xs text-slate-500 italic">(only one)</span>
+                </span>
+              </label>
+            </div>
 
             <div className="flex items-center gap-2">
               {!featuredImageUrl ? (

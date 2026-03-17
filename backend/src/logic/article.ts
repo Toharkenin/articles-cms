@@ -36,6 +36,21 @@ export class Article {
         // Find the highest current id
         const lastArticle = await ArticleModel.findOne().sort({ id: -1 });
         const nextId = lastArticle && lastArticle.id ? lastArticle.id + 1 : 1;
+
+        // Validate main article cannot be a draft
+        const articleStatus = status || 'draft';
+        if (mainArticle === true && articleStatus === 'draft') {
+          return {
+            success: false,
+            message: 'Draft articles cannot be set as main article',
+          };
+        }
+
+        // If setting as main article, unset all other articles
+        if (mainArticle === true) {
+          await ArticleModel.updateMany({ mainArticle: true }, { $set: { mainArticle: false } });
+        }
+
         const newArticle = new ArticleModel({
           id: nextId,
           articleId: newArticleId,
@@ -93,6 +108,22 @@ export class Article {
           }
         }
 
+        // Validate main article cannot be a draft
+        if (mainArticle === true && newStatus === 'draft') {
+          return {
+            success: false,
+            message: 'Draft articles cannot be set as main article',
+          };
+        }
+
+        // If setting as main article, unset all other articles
+        if (mainArticle === true) {
+          await ArticleModel.updateMany(
+            { mainArticle: true, articleId: { $ne: articleId } },
+            { $set: { mainArticle: false } }
+          );
+        }
+
         // Clean up payload to avoid empty string for category
         const updatePayload: any = { ...payload };
         if (
@@ -142,13 +173,34 @@ export class Article {
 
   async getMainArticle() {
     try {
-      const article = await ArticleModel.findOne({ mainArticle: true }).populate('category');
+      let article = await ArticleModel.findOne({ mainArticle: true }).populate('category');
+
+      // If no main article exists, randomly pick a published article
+      if (!article) {
+        const publishedArticles = await ArticleModel.find({ status: 'published' });
+
+        if (publishedArticles.length > 0) {
+          // Pick a random published article
+          const randomIndex = Math.floor(Math.random() * publishedArticles.length);
+          const selectedArticle = publishedArticles[randomIndex];
+
+          // Set it as main article
+          await ArticleModel.findByIdAndUpdate(selectedArticle._id, {
+            $set: { mainArticle: true },
+          });
+
+          // Fetch the updated article with populated category
+          article = await ArticleModel.findById(selectedArticle._id).populate('category');
+        }
+      }
+
       if (!article) {
         return {
           success: false,
-          message: 'Main article not found',
+          message: 'No published articles available',
         };
       }
+
       return {
         success: true,
         data: article,
