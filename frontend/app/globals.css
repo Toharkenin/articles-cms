@@ -306,8 +306,8 @@ body {
 
 /* Newsletter Signup */
 .newsletter-section {
-  background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%);
-  color: white;
+  background: linear-gradient(135deg, #eeeffa 0%, #e8f4f8 100%);
+  color: #6b7280;
 }
 
 .newsletter-input {

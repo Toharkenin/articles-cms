@@ -52,6 +52,13 @@ const Header = () => {
     }
   };
 
+  const scrollToNewsletter = () => {
+    const newsletterSection = document.querySelector('.newsletter-section');
+    if (newsletterSection) {
+      newsletterSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   return (
     <header className="w-full border-b border-gray-200 bg-white sticky top-0 z-50">
       <div
@@ -162,7 +169,10 @@ const Header = () => {
             </form>
           </div>
 
-          <Button className="bg-theme-red hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition">
+          <Button
+            onClick={scrollToNewsletter}
+            className="bg-theme-red hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+          >
             Subscribe
           </Button>
         </div>
