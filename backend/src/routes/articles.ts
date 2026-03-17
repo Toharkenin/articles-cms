@@ -91,6 +91,7 @@ router.post('/save-article', requireAdminAuth, async (req, res) => {
       isFeatured,
       status,
       featuredImage,
+      mainArticle,
     } = req.body;
 
     const admin = req.admin;
@@ -111,6 +112,7 @@ router.post('/save-article', requireAdminAuth, async (req, res) => {
       isFeatured,
       status,
       featuredImage,
+      mainArticle,
     });
 
     if (!result || !result.success) {
@@ -133,10 +135,25 @@ router.post('/save-article', requireAdminAuth, async (req, res) => {
 
 router.get('/get-articles', requireAdminAuth, async (req, res) => {
   try {
+    console.log('Admin accessing get-articles route');
     const getArticles = await new Article().getArticles();
+    console.log('Articles retrieved:', getArticles);
     res.json({ success: true, articles: getArticles });
   } catch (error) {
     console.error('Get articles error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+
+router.get('/get-main-article', async (req, res) => {
+  try {
+    const article = await new Article().getMainArticle();
+    if (!article.success) {
+      return res.status(404).json({ success: false, message: article.message });
+    }
+    res.json({ success: true, article: article.data });
+  } catch (error) {
+    console.error('Get main article error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });

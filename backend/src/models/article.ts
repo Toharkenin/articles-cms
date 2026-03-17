@@ -13,6 +13,7 @@ export interface Article extends Document {
   contentJson?: Object;
   contentHtml?: string;
   featuredImage?: string;
+  mainArticle?: boolean;
   languages?: string[];
 }
 
@@ -72,6 +73,11 @@ const ArticleSchema: Schema = new Schema({
   languages: {
     type: [String],
     required: false,
+  },
+  mainArticle: {
+    type: Boolean,
+    default: false,
+    unique: true,
   },
 });
 

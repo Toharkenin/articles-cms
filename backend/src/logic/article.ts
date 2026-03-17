@@ -13,6 +13,7 @@ export class Article {
     isFeatured?: boolean;
     status?: string;
     featuredImage?: string;
+    mainArticle?: boolean;
   }) {
     try {
       const {
@@ -26,6 +27,7 @@ export class Article {
         isFeatured,
         status,
         featuredImage,
+        mainArticle,
       } = payload;
 
       // If no articleId, create new draft
@@ -46,6 +48,7 @@ export class Article {
           isFeatured: isFeatured || false,
           status: status || 'draft',
           featuredImage: featuredImage || '',
+          mainArticle: mainArticle || false,
           createdAt: new Date(),
         });
         const savedArticle = await newArticle.save();
@@ -133,6 +136,28 @@ export class Article {
       return {
         success: false,
         message: 'An error occurred while fetching articles',
+      };
+    }
+  }
+
+  async getMainArticle() {
+    try {
+      const article = await ArticleModel.findOne({ mainArticle: true }).populate('category');
+      if (!article) {
+        return {
+          success: false,
+          message: 'Main article not found',
+        };
+      }
+      return {
+        success: true,
+        data: article,
+      };
+    } catch (error) {
+      console.error('Get main article error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while fetching main article',
       };
     }
   }
